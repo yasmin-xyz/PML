@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Basics for Ecommerce Teams — PickMeLabs</title>
+  <meta name="description" content="Understanding how AI recommendation systems work and why AI visibility matters for ecommerce brands. A professional research resource from PickMeLabs." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black: #080808;
+      --green: #00FF94;
+      --green-dim: rgba(0,255,148,0.1);
+      --green-border: rgba(0,255,148,0.18);
+      --white: #F0EFE9;
+      --muted: rgba(240,239,233,0.72);
+      --muted-dim: rgba(240,239,233,0.45);
+      --border: rgba(240,239,233,0.08);
+      --card: rgba(240,239,233,0.03);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    body { background: var(--black); color: var(--white); font-family: 'Space Grotesk', sans-serif; line-height: 1.6; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 40px; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 22px 0; background: rgba(8,8,8,0.96); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+    nav .container { display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 10px; }
+    .nav-logo em { color: var(--green); font-style: normal; }
+    .nav-logo-icon { width: 22px; height: 22px; flex-shrink: 0; }
+    .nav-links { list-style: none; display: flex; align-items: center; gap: 22px; }
+    .nav-links a { color: var(--muted-dim); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta { background: var(--green) !important; color: var(--black) !important; padding: 8px 20px; border-radius: 4px; font-weight: 600 !important; font-size: 13px !important; }
+    .nav-cta:hover { opacity: 0.85 !important; }
+    .nav-dropdown { position: relative; }
+    .nav-dropdown > a { display: flex; align-items: center; gap: 5px; }
+    .nav-dropdown > a::after { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform 0.2s; }
+    .nav-dropdown:hover > a::after { transform: rotate(-135deg) translateY(-2px); }
+    .dropdown-menu { position: absolute; top: calc(100% + 14px); left: 50%; transform: translateX(-50%) translateY(-6px); background: rgba(12,12,12,0.98); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 10px; padding: 8px; min-width: 300px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease; z-index: 200; }
+    .nav-dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    .dropdown-menu a { display: block; padding: 10px 14px; border-radius: 6px; font-size: 13px; color: var(--muted-dim) !important; transition: background 0.15s, color 0.15s !important; white-space: nowrap; }
+    .dropdown-menu a:hover { background: var(--green-dim); color: var(--white) !important; }
+    .dropdown-menu .dropdown-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(240,239,233,0.2); padding: 8px 14px 4px; display: block; }
+    .dropdown-divider { height: 1px; background: var(--border); margin: 6px 8px; }
+
+    /* HAMBURGER */
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 4px; cursor: pointer; z-index: 200; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--white); border-radius: 2px; transition: transform 0.3s ease, opacity 0.3s ease; }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    .mobile-menu { position: fixed; inset: 0; background: rgba(8,8,8,0.98); backdrop-filter: blur(20px); z-index: 150; flex-direction: column; align-items: center; justify-content: center; gap: 8px; opacity: 0; visibility: hidden; display: flex; transition: opacity 0.3s ease, visibility 0.3s ease; }
+    .mobile-menu.open { opacity: 1; visibility: visible; }
+    .mobile-menu a { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; color: var(--muted-dim); text-decoration: none; letter-spacing: -0.02em; padding: 12px 0; transition: color 0.2s; }
+    .mobile-menu a:hover { color: var(--white); }
+    .mobile-menu .mobile-cta { margin-top: 24px; background: var(--green); color: var(--black); font-size: 16px; font-weight: 700; padding: 14px 36px; border-radius: 4px; }
+    .mobile-close { position: absolute; top: 24px; right: 24px; background: none; border: none; color: var(--muted-dim); font-size: 20px; cursor: pointer; padding: 8px; transition: color 0.2s; }
+    .mobile-close:hover { color: var(--white); }
+
+    /* HERO */
+    .page-hero { padding: 160px 0 100px; text-align: center; position: relative; overflow: hidden; contain: layout style; }
+    .page-hero-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(240,239,233,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(240,239,233,0.04) 1px, transparent 1px); background-size: 68px 68px; mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent); pointer-events: none; }
+    .page-hero-glow { position: absolute; top: -120px; left: 50%; transform: translateX(-50%); width: 700px; height: 500px; background: radial-gradient(ellipse at center, rgba(0,255,148,0.07) 0%, transparent 70%); pointer-events: none; }
+    .page-hero-inner { position: relative; z-index: 1; }
+    .hero-tag { display: inline-flex; align-items: center; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--green); margin-bottom: 32px; }
+    .page-hero h1 { font-size: clamp(36px, 5vw, 62px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.08; margin-bottom: 24px; max-width: 860px; margin-left: auto; margin-right: auto; }
+    .page-hero > .container > .page-hero-inner > p,
+    .page-hero-inner > p { font-family: 'Inter', sans-serif; font-size: 17px; color: var(--muted); line-height: 1.78; max-width: 640px; margin: 0 auto; }
+
+    .audience-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+    .audience-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.13em; text-transform: uppercase; color: rgba(240,239,233,0.35); flex-shrink: 0; }
+    .audience-divider { width: 1px; height: 16px; background: rgba(240,239,233,0.12); flex-shrink: 0; }
+    .audience-pill { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(240,239,233,0.5); background: rgba(240,239,233,0.04); border: 1px solid rgba(240,239,233,0.1); border-radius: 4px; padding: 6px 14px; cursor: default; user-select: none; white-space: nowrap; }
+
+    /* SHARED */
+    .section { padding: 96px 0; text-align: center; }
+    .divider { height: 1px; background: var(--border); }
+    .label { display: block; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--green); margin-bottom: 18px; }
+    h2 { font-size: clamp(26px, 3.2vw, 40px); font-weight: 700; letter-spacing: -0.028em; line-height: 1.12; margin-bottom: 18px; }
+    .intro { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--muted); line-height: 1.75; max-width: 760px; margin: 0 auto; text-wrap: balance; }
+
+    .section-glow { position: relative; }
+    .section-glow::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 300px; background: radial-gradient(ellipse at top, rgba(0,255,148,0.05) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+    .section-glow > .container { position: relative; z-index: 1; }
+
+    .matter-card { margin: 36px auto 0; max-width: 800px; border: 1px solid var(--green-border); border-radius: 12px; padding: 42px 50px; background: linear-gradient(160deg, rgba(0,255,148,0.04) 0%, transparent 60%); position: relative; overflow: hidden; text-align: center; }
+    .matter-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--green), transparent); }
+    .matter-card p { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--muted); line-height: 1.8; margin: 0; }
+    .matter-card p + p { margin-top: 18px; }
+
+    .card-base { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 30px 26px; text-align: left; display: flex; flex-direction: column; position: relative; overflow: hidden; transition: border-color 0.25s, background 0.25s, transform 0.22s, box-shadow 0.25s; }
+    .card-base.hoverable:hover { border-color: var(--green-border); background: rgba(0,255,148,0.04); transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,255,148,0.06); }
+    .card-base.dim { opacity: 0.65; cursor: default; }
+    .card-base h3 { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; margin-bottom: 10px; color: var(--white); }
+    .card-base p { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.65; flex: 1; }
+
+    .cs-badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(240,239,233,0.4); background: rgba(240,239,233,0.06); border: 1px solid rgba(240,239,233,0.1); border-radius: 3px; padding: 3px 8px; margin-bottom: 16px; align-self: flex-start; }
+    .lab-tag { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--green); margin-bottom: 16px; display: flex; align-items: center; gap: 7px; }
+    .lab-tag-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+    .card-foot { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted-dim); display: flex; align-items: center; justify-content: space-between; }
+    .card-arrow { color: var(--green); transition: transform 0.2s; }
+    .card-base.hoverable:hover .card-arrow { transform: translateX(4px); }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 48px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 48px; }
+
+    .nav-card { background: linear-gradient(135deg, rgba(240,239,233,0.025) 0%, rgba(240,239,233,0.015) 100%); border: 1px solid var(--border); border-radius: 10px; padding: 36px 32px; text-align: left; text-decoration: none; color: var(--white); display: flex; flex-direction: column; position: relative; overflow: hidden; transition: border-color 0.25s, background 0.25s, transform 0.22s, box-shadow 0.25s; }
+    .nav-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--green), transparent); transform: scaleX(0); transform-origin: center; transition: transform 0.35s ease; }
+    .nav-card:hover { border-color: var(--green-border); background: linear-gradient(135deg, rgba(0,255,148,0.05) 0%, rgba(0,255,148,0.02) 100%); transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,255,148,0.06); }
+    .nav-card:hover::before { transform: scaleX(1); }
+    .nav-card-num { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--green); opacity: 0.5; letter-spacing: 0.12em; margin-bottom: 16px; }
+    .nav-card h3 { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; margin-bottom: 12px; color: var(--white); }
+    .nav-card p { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.7; flex: 1; }
+    .nav-card-foot { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--border); font-family: 'DM Mono', monospace; font-size: 11px; color: var(--green); display: flex; align-items: center; justify-content: space-between; }
+    .nav-arrow { transition: transform 0.2s; }
+    .nav-card:hover .nav-arrow { transform: translateX(4px); }
+
+    /* TWO PATHS SECTION */
+    .two-paths-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: left; }
+    .path-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 40px 36px; display: flex; flex-direction: column; }
+    .path-card-right { transition: border-color 0.25s, background 0.25s, transform 0.22s, box-shadow 0.25s; }
+    .path-card-right:hover { border-color: var(--green-border); background: rgba(0,255,148,0.025); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,255,148,0.05); }
+    .path-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted-dim); margin-bottom: 16px; display: block; }
+    .path-label-green { color: var(--green); opacity: 0.75; }
+    .path-heading { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; color: var(--white); margin-bottom: 18px; }
+    .path-body { font-family: 'Inter', sans-serif; font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 12px; }
+    .path-body-secondary { font-family: 'Inter', sans-serif; font-size: 13px; color: rgba(240,239,233,0.45); line-height: 1.65; margin-bottom: 0; }
+    .path-link { color: var(--white); text-decoration: none; border-bottom: 1px solid rgba(0,255,148,0.35); transition: border-color 0.2s; }
+    .path-link:hover { border-bottom-color: var(--green); }
+    .path-cta { margin-top: auto; padding-top: 28px; display: flex; flex-direction: column; gap: 10px; }
+    .path-btn-left-link { display: block; background: transparent; border: 1px solid var(--border); border-radius: 4px; padding: 13px 20px; font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; color: var(--white); text-decoration: none; text-align: center; transition: border-color 0.2s, color 0.2s; }
+    .path-btn-left-link:hover { border-color: rgba(0,255,148,0.4); color: var(--green); }
+    .path-microcopy { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(240,239,233,0.2); text-align: center; }
+    .path-btn-right { display: block; background: rgba(0,255,148,0.06); border: 1px solid var(--green-border); border-radius: 4px; padding: 13px 20px; font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; color: var(--green); text-decoration: none; text-align: center; transition: background 0.2s, border-color 0.2s; }
+    .path-btn-right:hover { background: rgba(0,255,148,0.1); border-color: rgba(0,255,148,0.35); }
+
+    footer { border-top: 1px solid var(--border); padding: 32px 0; }
+    footer .container { display: flex; align-items: center; justify-content: space-between; }
+    .foot-logo { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted-dim); }
+    .foot-logo em { color: var(--green); font-style: normal; }
+    .foot-links { list-style: none; display: flex; gap: 28px; }
+    .foot-links a { font-size: 13px; color: var(--muted-dim); text-decoration: none; font-weight: 500; transition: color 0.2s; }
+    .foot-links a:hover { color: var(--white); }
+    .foot-copy { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(240,239,233,0.2); }
+
+    .page-transition { position: fixed; inset: 0; background: var(--black); z-index: 99998; opacity: 0; pointer-events: none; transition: opacity 0.08s ease; }
+    .page-transition.active { opacity: 1; pointer-events: all; }
+
+    .scroll-fade { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .scroll-fade.in-view { opacity: 1; transform: translateY(0); }
+    .fade-1 { opacity: 0; animation: fadeUp 0.6s ease forwards 0.1s; }
+    .fade-2 { opacity: 0; animation: fadeUp 0.6s ease forwards 0.25s; }
+    .fade-3 { opacity: 0; animation: fadeUp 0.6s ease forwards 0.4s; }
+    .fade-4 { opacity: 0; animation: fadeUp 0.6s ease forwards 0.55s; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 820px) {
+      .container { padding: 0 24px; }
+      .section { padding: 72px 0; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .page-hero { padding: 120px 0 72px; }
+      .page-hero h1 { font-size: clamp(30px, 8vw, 44px); }
+      .matter-card { padding: 32px 24px; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .grid-3 > *, .grid-2 > * { grid-column: 1 / -1 !important; }
+      footer .container { flex-direction: column; gap: 18px; text-align: center; }
+      .foot-links { flex-wrap: wrap; justify-content: center; }
+      .audience-row { gap: 8px; }
+      .audience-pill { font-size: 10px; padding: 5px 12px; }
+      .audience-label { font-size: 10px; }
+      .two-paths-grid { grid-template-columns: 1fr; }
+      .path-btn-left, .path-btn-right { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="container">
+    <a href="/" class="nav-logo">
+      <svg class="nav-logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polygon points="15,15 82,42 50,55 38,88" fill="#00FF94"/></svg>
+      <span>Pick<em>Me</em>Labs</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/#how">How AI Chooses Brands</a></li>
+      <li><a href="/#offer">Visibility Experiment</a></li>
+      <li class="nav-dropdown">
+        <a href="/research.html">Research</a>
+        <div class="dropdown-menu">
+          <span class="dropdown-label">Start Here</span>
+          <a href="/research.html">Research Library</a>
+          <a href="/concepts.html">Concept System</a>
+          <a href="/methodology.html">Methodology</a>
+          <div class="dropdown-divider"></div>
+          <span class="dropdown-label">Experiments</span>
+          <a href="/research/protein-powder.html">Protein Powder Experiment</a>
+          <a href="/research/mattress.html">Mattress Experiment</a>
+          <a href="/research/beauty.html">Beauty Experiment</a>
+          <div class="dropdown-divider"></div>
+          <a href="/#lab">View all experiments →</a>
+        </div>
+      </li>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="/#contact" class="nav-cta">Get in Touch</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose" aria-label="Close menu">✕</button>
+  <a href="/#how" class="mobile-link">How AI Chooses Brands</a>
+  <a href="/#offer" class="mobile-link">Visibility Experiment</a>
+  <a href="/research.html" class="mobile-link">Research Library</a>
+  <a href="/#lab" class="mobile-link">Published Experiments</a>
+  <a href="/about.html" class="mobile-link">About</a>
+  <a href="/#contact" class="mobile-cta mobile-link">Get in Touch</a>
+</div>
+
+<!-- HERO -->
+<section class="page-hero">
+  <div class="page-hero-grid"></div>
+  <canvas id="heroCanvas" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;user-select:none;mask-image:linear-gradient(to bottom, black 60%, transparent 100%);-webkit-mask-image:linear-gradient(to bottom, black 60%, transparent 100%);"></canvas>
+  <div class="page-hero-glow"></div>
+  <div class="container page-hero-inner">
+    <div class="hero-tag fade-1">AI Basics</div>
+    <h1 class="fade-2">Understanding AI-Powered<br>Product Discovery</h1>
+    <p class="fade-3">How modern AI systems retrieve information, generate answers, and influence which brands get recommended.</p>
+    <div class="audience-row fade-4">
+      <span class="audience-label">For</span>
+      <span class="audience-divider"></span>
+      <span class="audience-pill">Ecommerce Teams</span>
+      <span class="audience-pill">Marketers</span>
+      <span class="audience-pill">Founders</span>
+      <span class="audience-pill">Digital Leaders</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- WHY IT MATTERS -->
+<section class="section" style="padding: 72px 0;">
+  <div class="container">
+    <span class="label scroll-fade">Why It Matters</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s;">AI is becoming part of the buying journey</h2>
+    <div class="matter-card scroll-fade" style="transition-delay:0.15s;">
+      <p>Consumers are increasingly asking AI what to buy before they search, browse, or compare.</p>
+      <p>The brands surfaced in those answers shape which products buyers consider first.</p>
+      <p>For ecommerce brands, understanding how recommendation systems work is becoming part of understanding how products get discovered.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 1: AI FUNDAMENTALS -->
+<section class="section section-glow">
+  <div class="container">
+    <span class="label scroll-fade">AI Fundamentals</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s;">Start with the basics</h2>
+    <p class="intro scroll-fade" style="transition-delay:0.15s;">Plain-language explanations of how modern AI systems work — no technical background required.</p>
+    <div class="grid-3">
+
+      <div class="card-base dim scroll-fade" style="transition-delay:0.1s;">
+        <span class="cs-badge">Coming Soon</span>
+        <h3>What is AI?</h3>
+        <p>A plain-language overview of how modern AI systems work — and why they behave differently from traditional software.</p>
+      </div>
+
+      <div class="card-base dim scroll-fade" style="transition-delay:0.15s;">
+        <span class="cs-badge">Coming Soon</span>
+        <h3>What is an LLM?</h3>
+        <p>How large language models like ChatGPT, Claude, and Gemini generate responses — and why they power most modern AI experiences.</p>
+      </div>
+
+      <div class="card-base dim scroll-fade" style="transition-delay:0.2s;">
+        <span class="cs-badge">Coming Soon</span>
+        <h3>How AI Generates Answers</h3>
+        <p>A high-level overview of how training data, retrieval, and reasoning work together to produce AI-generated responses.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 2: HOW AI FINDS INFORMATION -->
+<section class="section">
+  <div class="container">
+    <span class="label scroll-fade">How AI Finds Information</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s;">Where AI gets its information</h2>
+    <p class="intro scroll-fade" style="transition-delay:0.15s;">Understanding the sources behind AI answers — and why it matters for brand visibility.</p>
+    <div class="grid-2">
+
+      <div class="card-base dim scroll-fade" style="transition-delay:0.1s;">
+        <span class="cs-badge">Coming Soon</span>
+        <h3>How Training Data Works</h3>
+        <p>Why training data influences what an AI system already understands about brands, products, and concepts — before a question is ever asked.</p>
+      </div>
+
+      <div class="card-base dim scroll-fade" style="transition-delay:0.15s;">
+        <span class="cs-badge">Coming Soon</span>
+        <h3>How AI Finds Information</h3>
+        <p>How modern AI systems use training data, retrieval systems, browsing, and external sources to generate answers — and why different source types affect brand visibility differently.</p>
+      </div>
+
+      <div class="card-base dim scroll-fade" style="transition-delay:0.2s;">
+        <span class="cs-badge">Coming Soon</span>
+        <h3>Training vs Retrieval</h3>
+        <p>A deeper explanation of the difference between learned knowledge (baked into the model) and retrieved information (looked up at query time) — and why the distinction matters.</p>
+      </div>
+
+      <div class="card-base dim scroll-fade" style="transition-delay:0.25s;">
+        <span class="cs-badge">Coming Soon</span>
+        <h3>What ChatGPT Uses To Answer Questions</h3>
+        <p>How ChatGPT may use training data, browsing, memory, and retrieved context depending on the situation — and how that shapes which brands it surfaces.</p>
+      </div>
+
+      <div class="card-base dim scroll-fade" style="transition-delay:0.3s; grid-column: 1 / -1;">
+        <span class="cs-badge">Coming Soon</span>
+        <h3>ChatGPT vs Claude vs Gemini vs Perplexity</h3>
+        <p>How the major AI systems compare in their approach to source use, retrieval behaviour, and brand recommendation patterns — and what those differences mean for ecommerce visibility.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 3: RECOMMENDATIONS & VISIBILITY -->
+<section class="section section-glow">
+  <div class="container">
+    <span class="label scroll-fade">Recommendations & Visibility</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s;">What this means for brands</h2>
+    <p class="intro scroll-fade" style="transition-delay:0.15s;">The bridge between AI education and ecommerce strategy — how recommendation systems affect which brands buyers see.</p>
+    <div class="grid-3">
+
+      <div class="card-base dim scroll-fade" style="transition-delay:0.1s;">
+        <span class="cs-badge">Coming Soon</span>
+        <h3>What is AI Visibility?</h3>
+        <p>A practical introduction to AI visibility — why recommendation systems are becoming part of modern product discovery and what it means for ecommerce brands.</p>
+      </div>
+
+      <div class="card-base dim scroll-fade" style="transition-delay:0.15s;">
+        <span class="cs-badge">Coming Soon</span>
+        <h3>What AI Actually Knows About Your Brand</h3>
+        <p>Why an AI system's understanding of a brand may be incomplete, outdated, or inconsistent — and how that directly affects recommendation inclusion.</p>
+      </div>
+
+      <div class="card-base dim scroll-fade" style="transition-delay:0.2s;">
+        <span class="cs-badge">Coming Soon</span>
+        <h3>Why Different AI Systems Give Different Answers</h3>
+        <p>How architecture, training data, and retrieval design lead to meaningfully different recommendation outputs across platforms.</p>
+      </div>
+
+      <div class="card-base dim scroll-fade" style="transition-delay:0.25s;">
+        <span class="cs-badge">Coming Soon</span>
+        <h3>Why AI Recommendations Change Over Time</h3>
+        <p>What tends to drive shifts in which brands an AI system surfaces — and why recommendation visibility is dynamic rather than fixed.</p>
+      </div>
+
+      <div class="card-base dim scroll-fade" style="transition-delay:0.3s; grid-column: span 2;">
+        <span class="cs-badge">Coming Soon</span>
+        <h3>Why AI Recommendations Are Not Search Rankings</h3>
+        <p>Why ranking in search results and appearing in AI recommendations are often different outcomes — and why recommendation visibility is becoming its own category of discovery.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- EVIDENCE FROM THE LAB -->
+<section class="section">
+  <div class="container">
+    <span class="label scroll-fade">Evidence From the Lab</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s;">See these concepts in real experiments</h2>
+    <p class="intro scroll-fade" style="transition-delay:0.15s; max-width:680px;">The concepts in this library are regularly observed inside PickMeLabs experiments.</p>
+    <div class="grid-3">
+
+      <a href="/research/protein-powder.html" class="card-base hoverable scroll-fade" style="transition-delay:0.1s; text-decoration:none; color:var(--white);">
+        <span class="lab-tag"><span class="lab-tag-dot"></span>Published</span>
+        <h3>Protein Powder Experiment</h3>
+        <p>Illustrates how recommendation patterns concentrate around a small number of brands across different query types.</p>
+        <div class="card-foot">
+          <span>Supplements</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+      <a href="/research/mattress.html" class="card-base hoverable scroll-fade" style="transition-delay:0.15s; text-decoration:none; color:var(--white);">
+        <span class="lab-tag"><span class="lab-tag-dot"></span>Published</span>
+        <h3>Mattress Experiment</h3>
+        <p>Shows how buying context and geography shift which brands appear across the same category queries.</p>
+        <div class="card-foot">
+          <span>Home &amp; Sleep</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+      <a href="/research/beauty.html" class="card-base hoverable scroll-fade" style="transition-delay:0.2s; text-decoration:none; color:var(--white);">
+        <span class="lab-tag"><span class="lab-tag-dot"></span>Published</span>
+        <h3>Beauty Experiment</h3>
+        <p>Demonstrates how well-known celebrity-backed brands can remain absent from AI recommendation environments.</p>
+        <div class="card-foot">
+          <span>Beauty &amp; Skincare</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TWO PATHS SECTION -->
+<section class="section">
+  <div class="container">
+    <div class="two-paths-grid scroll-fade">
+
+      <!-- LEFT: Suggest a Topic -->
+      <div class="path-card path-card-left">
+        <span class="path-label">Help Shape Future Content</span>
+        <h3 class="path-heading">Can't Find What You're Looking For?</h3>
+        <p class="path-body">We're building a growing library of educational resources about AI-powered discovery. If there's a topic you'd like explained, let us know.</p>
+        <p class="path-body-secondary">Selected suggestions may become future AI Basics articles, research notes, or experiments.</p>
+        <div class="path-cta">
+          <span class="path-microcopy">Educational requests only.</span>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLScsXNxl3snOU9ZWcDiwGE41Bf0LXFilP8ceCWfiMCrbEDweWw/viewform?usp=header" target="_blank" rel="noopener" class="path-btn-left-link">Submit a Question →</a>
+        </div>
+      </div>
+
+      <!-- RIGHT: Visibility Experiment -->
+      <div class="path-card path-card-right">
+        <span class="path-label path-label-green">For Ecommerce Teams</span>
+        <h3 class="path-heading">Curious How AI Sees Your Brand?</h3>
+        <p class="path-body">The <a href="https://pickmelabs.com/#offer" class="path-link">PickMeLabs Visibility Experiment</a> helps ecommerce teams understand where their brand appears, where competitors are being surfaced, and what patterns may be influencing recommendation inclusion.</p>
+        <p class="path-body-secondary">Designed for brands that want a deeper understanding of AI visibility, recommendation behaviour, and competitive positioning.</p>
+        <div class="path-cta">
+          <a href="https://pickmelabs.com/#contact" class="path-btn-right">Get in Touch →</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- NEXT STEPS -->
+<section class="section section-glow" style="padding-bottom: 112px;">
+  <div class="container">
+    <span class="label scroll-fade">Next Steps</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s;">Continue exploring AI visibility</h2>
+    <div class="grid-3">
+
+      <a href="/concepts.html" class="nav-card scroll-fade" style="transition-delay:0.1s;">
+        <span class="nav-card-num">01</span>
+        <h3>PickMeLabs Concept System</h3>
+        <p>The proprietary frameworks used throughout PickMeLabs research and experiments.</p>
+        <div class="nav-card-foot">
+          <span>Explore framework</span>
+          <span class="nav-arrow">→</span>
+        </div>
+      </a>
+
+      <a href="/research-notes.html" class="nav-card scroll-fade" style="transition-delay:0.15s;">
+        <span class="nav-card-num">02</span>
+        <h3>Research Notes</h3>
+        <p>Long-form analysis explaining recurring patterns observed across AI recommendation environments.</p>
+        <div class="nav-card-foot">
+          <span>Browse research</span>
+          <span class="nav-arrow">→</span>
+        </div>
+      </a>
+
+      <a href="/methodology.html" class="nav-card scroll-fade" style="transition-delay:0.2s;">
+        <span class="nav-card-num">03</span>
+        <h3>Methodology</h3>
+        <p>How PickMeLabs designs experiments, evaluates outputs, and studies recommendation behaviour.</p>
+        <div class="nav-card-foot">
+          <span>View methodology</span>
+          <span class="nav-arrow">→</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p class="foot-logo">Pick<em>Me</em>Labs</p>
+    <ul class="foot-links">
+      <li><a href="/#how">How AI Chooses Brands</a></li>
+      <li><a href="/#offer">Visibility Experiment</a></li>
+      <li><a href="/research.html">Research</a></li>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ul>
+    <p class="foot-copy">© 2026 PickMeLabs</p>
+  </div>
+</footer>
+
+<div class="page-transition" id="pageTransition"></div>
+
+<script>
+  const pageTransition = document.getElementById('pageTransition');
+  window.addEventListener('pageshow', () => { pageTransition.classList.remove('active'); });
+  document.querySelectorAll('a').forEach(link => {
+    const href = link.getAttribute('href');
+    if (href && !href.startsWith('#') && !href.startsWith('mailto') && !href.startsWith('http')) {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        pageTransition.classList.add('active');
+        if (href.startsWith('/#')) {
+          sessionStorage.setItem('scrollTo', href.substring(1));
+          setTimeout(() => { window.location.href = '/'; }, 80);
+        } else {
+          setTimeout(() => { window.location.href = href; }, 80);
+        }
+      });
+    }
+  });
+
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const mobileClose = document.getElementById('mobileClose');
+  function closeMenu() { hamburger.classList.remove('open'); mobileMenu.classList.remove('open'); document.body.style.overflow = ''; }
+  hamburger.addEventListener('click', () => { hamburger.classList.toggle('open'); mobileMenu.classList.toggle('open'); document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : ''; });
+  mobileClose.addEventListener('click', closeMenu);
+  document.querySelectorAll('.mobile-link').forEach(link => { link.addEventListener('click', closeMenu); });
+
+  const canvas = document.getElementById('heroCanvas');
+  const ctx = canvas.getContext('2d', { alpha: true });
+  function resizeCanvas() { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  const isMobile = window.innerWidth < 820;
+  const particles = Array.from({length: isMobile ? 30 : 45}, () => ({
+    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+    vx: (Math.random() - 0.5) * (isMobile ? 0.2 : 0.35),
+    vy: (Math.random() - 0.5) * (isMobile ? 0.2 : 0.35),
+    r: Math.random() * 1.2 + 0.4, a: Math.random() * 0.45 + 0.1
+  }));
+  let heroVisible = true;
+  const heroObserver = new IntersectionObserver(entries => { heroVisible = entries[0].isIntersecting; }, { threshold: 0 });
+  heroObserver.observe(canvas);
+  let lastFrame = 0;
+  const fpsInterval = 1000 / 30;
+  function animateParticles(ts) {
+    requestAnimationFrame(animateParticles);
+    if (!heroVisible || document.hidden) return;
+    if (ts - lastFrame < fpsInterval) return;
+    lastFrame = ts;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const cx = canvas.width / 2, cy = canvas.height / 2, exW = canvas.width * 0.55, exH = canvas.height * 0.65;
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+      const dx = p.x - cx, dy = p.y - cy;
+      if (Math.abs(dx) < exW/2 && Math.abs(dy) < exH/2) {
+        const pushX = dx < 0 ? -1 : 1, pushY = dy < 0 ? -1 : 1;
+        p.vx += pushX * ((exW/2 - Math.abs(dx)) / (exW/2)) * 0.03;
+        p.vy += pushY * ((exH/2 - Math.abs(dy)) / (exH/2)) * 0.03;
+        const speed = Math.sqrt(p.vx*p.vx + p.vy*p.vy);
+        if (speed > 0.7) { p.vx = (p.vx/speed)*0.7; p.vy = (p.vy/speed)*0.7; }
+      }
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(0,255,148,' + p.a + ')'; ctx.fill();
+    });
+    const maxDistSq = 90 * 90; ctx.lineWidth = 0.5;
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i+1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y, dSq = dx*dx + dy*dy;
+        if (dSq < maxDistSq) {
+          ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = 'rgba(0,255,148,' + (0.07*(1-Math.sqrt(dSq)/90)) + ')'; ctx.stroke();
+        }
+      }
+    }
+  }
+  requestAnimationFrame(animateParticles);
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('in-view'); observer.unobserve(entry.target); } });
+  }, { threshold: 0 });
+  document.querySelectorAll('.scroll-fade').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+# PickMeLabs
+
+PickMeLabs is an AI visibility research lab focused on ecommerce brands.
+
+The company helps brands understand how AI systems such as ChatGPT, Claude, Gemini, Perplexity, and other large language models select, recommend, and exclude products and companies from buying recommendations.
+
+PickMeLabs combines original research, experimentation, and visibility analysis to help brands understand how AI-powered discovery systems select and recommend products.
+
+Research and visibility analysis may include:
+
+* AI visibility audits
+* Recommendation eligibility analysis
+* Competitor replacement analysis
+* Brand discoverability research
+* AI recommendation testing
+* AI search and discovery analysis
+* Strategic recommendations for improving AI visibility
+
+The company publishes experiments, research notes, frameworks, and case studies that explore how AI recommendation systems influence consumer decision-making and brand selection.
+
+Core research areas:
+
+* AI Visibility
+* Recommendation Eligibility
+* AI Recommendations
+* AI Search
+* Brand Discoverability
+* Discovery Environments
+* Competitor Replacement Patterns
+* Category Anchors
+* Ecommerce
+
+Official Website:
+https://pickmelabs.com
+
+Core Pages:
+https://pickmelabs.com/about.html
+https://pickmelabs.com/methodology.html
+https://pickmelabs.com/concepts.html
+https://pickmelabs.com/research.html
+https://pickmelabs.com/research-notes.html
+
+Published Research:
+https://pickmelabs.com/research/protein-powder.html
+https://pickmelabs.com/research/mattress.html
+https://pickmelabs.com/research/beauty.html

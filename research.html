@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Research Library | PickMeLabs</title>
+  <meta name="description" content="A growing database of experiments, frameworks, and research exploring how AI recommendation systems influence ecommerce discovery, brand visibility, and buying behaviour." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black: #080808;
+      --green: #00FF94;
+      --green-glow: rgba(0,255,148,0.02);
+      --white: #F0EFE9;
+      --text: rgba(240,239,233,0.72);
+      --text-bright: rgba(240,239,233,0.9);
+      --text-dim: rgba(240,239,233,0.45);
+      --line: rgba(240,239,233,0.06);
+      --line-subtle: rgba(240,239,233,0.03);
+    }
+    
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 17px;
+      line-height: 1.7;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 22px 0;
+      background: rgba(8,8,8,0.96);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+    nav .container { 
+      max-width: 960px; 
+      margin: 0 auto; 
+      padding: 0 40px;
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between;
+    }
+    .nav-logo { 
+      font-family: 'DM Mono', monospace; 
+      font-size: 14px; 
+      color: var(--white); 
+      text-decoration: none; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+    }
+    .nav-logo em { color: var(--green); font-style: normal; }
+    .nav-logo-icon { width: 22px; height: 22px; flex-shrink: 0; }
+    .nav-links { list-style: none; display: flex; align-items: center; gap: 22px; }
+    .nav-links a { 
+      color: var(--text-dim); 
+      text-decoration: none; 
+      font-size: 14px; 
+      font-weight: 500; 
+      transition: color 0.2s; 
+    }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta { 
+      background: var(--green) !important; 
+      color: var(--black) !important; 
+      padding: 8px 20px; 
+      border-radius: 4px; 
+      font-weight: 600 !important; 
+      font-size: 13px !important; 
+    }
+    .nav-cta:hover { opacity: 0.85 !important; }
+
+    .nav-dropdown { position: relative; }
+    .nav-dropdown > a { display: flex; align-items: center; gap: 5px; }
+    .nav-dropdown > a::after { 
+      content: ''; 
+      width: 6px; height: 6px; 
+      border-right: 1.5px solid currentColor; 
+      border-bottom: 1.5px solid currentColor; 
+      transform: rotate(45deg) translateY(-2px); 
+      transition: transform 0.2s; 
+    }
+    .nav-dropdown:hover > a::after { transform: rotate(-135deg) translateY(-2px); }
+    .dropdown-menu { 
+      position: absolute; 
+      top: calc(100% + 14px); 
+      left: 50%; 
+      transform: translateX(-50%); 
+      background: rgba(12,12,12,0.98); 
+      backdrop-filter: blur(20px); 
+      border: 1px solid var(--line); 
+      border-radius: 10px; 
+      padding: 8px; 
+      min-width: 220px; 
+      opacity: 0; 
+      visibility: hidden; 
+      transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease; 
+      transform: translateX(-50%) translateY(-6px); 
+      z-index: 200; 
+    }
+    .nav-dropdown:hover .dropdown-menu { 
+      opacity: 1; 
+      visibility: visible; 
+      transform: translateX(-50%) translateY(0); 
+    }
+    .dropdown-menu a { 
+      display: block; 
+      padding: 10px 14px; 
+      border-radius: 6px; 
+      font-size: 13px; 
+      color: var(--text-dim) !important; 
+      transition: background 0.15s, color 0.15s !important; 
+      white-space: nowrap; 
+    }
+    .dropdown-menu a:hover { 
+      background: var(--green-glow); 
+      color: var(--white) !important; 
+    }
+    .dropdown-label { 
+      font-family: 'DM Mono', monospace; 
+      font-size: 10px; 
+      letter-spacing: 0.12em; 
+      text-transform: uppercase; 
+      color: rgba(240,239,233,0.2); 
+      padding: 8px 14px 4px; 
+      display: block; 
+    }
+    .dropdown-divider { height: 1px; background: var(--line); margin: 6px 8px; }
+
+    /* HAMBURGER */
+    .hamburger { 
+      display: none; 
+      flex-direction: column; 
+      gap: 5px; 
+      background: none; 
+      border: none; 
+      padding: 4px; 
+      cursor: pointer; 
+      z-index: 200; 
+    }
+    .hamburger span { 
+      display: block; 
+      width: 22px; 
+      height: 2px; 
+      background: var(--white); 
+      border-radius: 2px; 
+      transition: transform 0.3s ease, opacity 0.3s ease; 
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* MOBILE MENU */
+    .mobile-menu { 
+      position: fixed; 
+      inset: 0; 
+      background: rgba(8,8,8,0.98); 
+      backdrop-filter: blur(20px); 
+      z-index: 150; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      gap: 8px; 
+      opacity: 0; 
+      visibility: hidden; 
+      display: flex; 
+      transition: opacity 0.3s ease, visibility 0.3s ease; 
+    }
+    .mobile-menu.open { opacity: 1; visibility: visible; }
+    .mobile-menu a { 
+      font-family: 'Space Grotesk', sans-serif; 
+      font-size: 28px; 
+      font-weight: 700; 
+      color: var(--text-dim); 
+      text-decoration: none; 
+      letter-spacing: -0.02em; 
+      padding: 12px 0; 
+      transition: color 0.2s; 
+    }
+    .mobile-menu a:hover { color: var(--white); }
+    .mobile-menu .mobile-cta { 
+      margin-top: 24px; 
+      background: var(--green); 
+      color: var(--black); 
+      font-size: 16px; 
+      font-weight: 700; 
+      padding: 14px 36px; 
+      border-radius: 4px; 
+    }
+    .mobile-close { 
+      position: absolute; 
+      top: 24px; 
+      right: 24px; 
+      background: none; 
+      border: none; 
+      color: var(--text-dim); 
+      font-size: 20px; 
+      cursor: pointer; 
+      padding: 8px; 
+      transition: color 0.2s; 
+    }
+    .mobile-close:hover { color: var(--white); }
+
+    /* HERO */
+    .hero {
+      padding: 160px 40px 80px;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 900px;
+      height: 700px;
+      background: radial-gradient(ellipse, rgba(0,255,148,0.06) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #heroCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+    }
+
+    .hero-content {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 0;
+      position: relative;
+      z-index: 1;
+      text-align: left;
+    }
+
+    .hero-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 24px;
+      display: block;
+      text-align: left;
+    }
+
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(38px, 5vw, 52px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1.12;
+      color: var(--white);
+      margin-bottom: 28px;
+      text-align: left;
+    }
+
+    .hero-subtitle {
+      font-size: 20px;
+      line-height: 1.65;
+      color: var(--text-bright);
+      max-width: 100%;
+      text-align: left;
+    }
+
+    /* RESEARCH FINDER SECTION */
+    .finder-section {
+      padding: 88px 40px 96px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .finder-section .container {
+      max-width: 880px;
+      margin: 0 auto;
+    }
+
+    .finder-heading {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(28px, 3.5vw, 36px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      color: var(--white);
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .finder-intro {
+      font-size: 17px;
+      line-height: 1.65;
+      color: var(--text);
+      margin-bottom: 40px;
+      text-align: left;
+      max-width: 100%;
+    }
+
+    .search-container {
+      width: 100%;
+      max-width: 880px;
+      margin: 0 auto 28px;
+    }
+
+    .search-input {
+      width: 100%;
+      background: rgba(240,239,233,0.02);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px 24px;
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      color: var(--white);
+      transition: border-color 0.3s, background 0.3s;
+      box-sizing: border-box;
+    }
+
+    .search-input::placeholder {
+      color: var(--text-dim);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: rgba(0,255,148,0.3);
+      background: rgba(0,255,148,0.02);
+    }
+
+    .topic-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(240,239,233,0.35);
+      margin: 28px auto 10px;
+      display: block;
+      text-align: left;
+      max-width: 880px;
+    }
+
+    .topic-chips {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      max-width: 880px;
+      margin: 0 auto 52px;
+    }
+
+    .topic-chip {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      padding: 8px 16px;
+      background: rgba(240,239,233,0.02);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, color 0.2s;
+      max-width: 100%;
+      white-space: normal;
+    }
+
+    .topic-chip:hover {
+      border-color: rgba(0,255,148,0.3);
+      background: rgba(0,255,148,0.02);
+      color: var(--white);
+    }
+
+    .topic-chip.active {
+      border-color: rgba(0,255,148,0.4);
+      background: rgba(0,255,148,0.04);
+      color: var(--green);
+    }
+
+    .clear-search {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(240,239,233,0.3);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      margin-bottom: 18px;
+      transition: color 0.2s, gap 0.2s;
+    }
+
+    .clear-search:hover {
+      color: var(--green);
+      gap: 9px;
+    }
+
+    .results-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(240,239,233,0.35);
+      margin: 0 0 14px;
+      display: block;
+    }
+
+    #resultsSection {
+      width: 100%;
+      max-width: 880px;
+      margin: 18px auto 34px;
+    }
+
+    .results-container {
+      display: grid;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .result-card {
+      background: rgba(240,239,233,0.02);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px 22px;
+      text-decoration: none;
+      display: block;
+      transition: border-color 0.3s, background 0.3s;
+    }
+
+    .result-card:hover {
+      border-color: rgba(0,255,148,0.2);
+      background: rgba(0,255,148,0.02);
+    }
+
+    .result-type {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 9px;
+      display: block;
+    }
+
+    .result-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      line-height: 1.35;
+      color: var(--white);
+      margin-bottom: 7px;
+    }
+
+    .result-card p {
+      font-size: 14px;
+      line-height: 1.55;
+      color: rgba(240,239,233,0.6);
+      margin: 0;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 52px 32px;
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* SECTION COMMON */
+    .section {
+      padding: 120px 40px;
+    }
+
+    .section .container {
+      max-width: 880px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .section-heading {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(32px, 4vw, 42px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      color: var(--white);
+      margin-bottom: 20px;
+    }
+
+    .section-intro {
+      font-size: 18px;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 72px;
+      max-width: 100%;
+    }
+
+    /* START HERE CARDS - now 3 columns */
+    .start-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    .foundation-card {
+      background: linear-gradient(135deg, rgba(0,255,148,0.04) 0%, rgba(0,255,148,0.01) 100%);
+      border: 1px solid rgba(0,255,148,0.15);
+      border-radius: 12px;
+      padding: 44px 36px;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.3s, transform 0.2s, background 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .foundation-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--green) 0%, transparent 100%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .foundation-card:hover {
+      border-color: rgba(0,255,148,0.3);
+      transform: translateY(-4px);
+      background: linear-gradient(135deg, rgba(0,255,148,0.06) 0%, rgba(0,255,148,0.02) 100%);
+    }
+
+    .foundation-card:hover::before {
+      opacity: 1;
+    }
+
+    .foundation-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      color: var(--white);
+      margin-bottom: 16px;
+      min-height: calc(22px * 1.3 * 2);
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .foundation-card p {
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+      margin-bottom: 28px;
+      flex-grow: 1;
+    }
+
+    .foundation-card-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--green);
+      transition: gap 0.3s;
+      margin-top: auto;
+    }
+
+    .foundation-card:hover .foundation-card-btn {
+      gap: 12px;
+    }
+
+    /* RESEARCH NOTES SECTION */
+    .notes-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .note-card {
+      background: rgba(240,239,233,0.02);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 36px 40px;
+      text-decoration: none;
+      display: block;
+      transition: border-color 0.3s, background 0.3s;
+    }
+
+    .note-card:hover {
+      border-color: rgba(0,255,148,0.2);
+      background: rgba(0,255,148,0.02);
+    }
+
+    .note-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .note-type {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .note-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      color: var(--green);
+    }
+
+    .note-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      line-height: 1.35;
+      color: var(--white);
+      margin-bottom: 12px;
+    }
+
+    .note-card p {
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+      margin: 0;
+    }
+
+    /* EXPERIMENTS SECTION */
+    .experiments-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      margin-bottom: 48px;
+    }
+
+    .experiment-card {
+      background: rgba(240,239,233,0.02);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 32px 32px;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.3s, background 0.3s;
+      min-height: 220px;
+    }
+
+    .experiment-card:hover {
+      border-color: rgba(0,255,148,0.2);
+      background: rgba(0,255,148,0.02);
+    }
+
+    .experiment-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .experiment-card h3 {
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.45;
+      color: var(--white);
+      margin: 0;
+      flex-grow: 1;
+    }
+
+    .experiment-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      display: block;
+    }
+
+    .view-all-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--white);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(0,255,148,0.3);
+      transition: border-color 0.2s, gap 0.3s;
+    }
+
+    .view-all-link:hover {
+      border-color: var(--green);
+      gap: 12px;
+    }
+
+    /* ECOSYSTEM SECTION - now 4 boxes */
+    .ecosystem-section {
+      padding: 100px 40px;
+      border-top: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(0,255,148,0.01) 0%, transparent 100%);
+    }
+
+    .ecosystem-heading {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      color: var(--white);
+      margin-bottom: 52px;
+      text-align: center;
+    }
+
+    .ecosystem-flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+      gap: 20px;
+      align-items: center;
+      max-width: 880px;
+      margin: 0 auto 64px;
+    }
+
+    .ecosystem-box {
+      background: rgba(240,239,233,0.02);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 28px 22px;
+      text-align: center;
+    }
+
+    .ecosystem-box-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+    }
+
+    .ecosystem-box-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 12px;
+    }
+
+    .ecosystem-box-desc {
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .ecosystem-arrow {
+      font-size: 20px;
+      color: var(--green);
+      opacity: 0.4;
+    }
+
+    .ecosystem-explanation {
+      max-width: 820px;
+      margin: 0 auto;
+      text-align: center;
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--text);
+    }
+
+    /* FINAL CTA SECTION */
+    .final-cta-section {
+      padding: 100px 40px;
+      border-top: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .final-cta-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(0,255,148,0.03) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .final-cta-section .container {
+      max-width: 820px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .final-cta-heading {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(28px, 3.5vw, 36px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.25;
+      color: var(--white);
+      margin-bottom: 24px;
+    }
+
+    .final-cta-text {
+      font-size: 17px;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 44px;
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .final-cta-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .final-cta-btn {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 14px 32px;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.2s;
+      display: inline-block;
+    }
+
+    .final-cta-btn-primary {
+      background: var(--green);
+      color: var(--black);
+    }
+
+    .final-cta-btn-secondary {
+      background: transparent;
+      color: var(--white);
+      border: 1px solid var(--line);
+    }
+
+    .final-cta-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 44px 0;
+    }
+
+    footer .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .foot-logo {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .foot-logo em {
+      color: var(--green);
+      font-style: normal;
+    }
+
+    .foot-links {
+      list-style: none;
+      display: flex;
+      gap: 30px;
+    }
+
+    .foot-links a {
+      font-size: 13px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .foot-links a:hover {
+      color: var(--white);
+    }
+
+    .foot-copy {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: rgba(240,239,233,0.2);
+    }
+
+    .page-transition {
+      position: fixed;
+      inset: 0;
+      background: var(--black);
+      z-index: 99998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.1s ease;
+    }
+
+    .page-transition.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* PAGE LOAD ANIMATIONS */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-1,
+    .fade-2,
+    .fade-3,
+    .fade-4 {
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards;
+    }
+
+    .fade-1 { animation-delay: 0.08s; }
+    .fade-2 { animation-delay: 0.18s; }
+    .fade-3 { animation-delay: 0.28s; }
+    .fade-4 { animation-delay: 0.38s; }
+
+    /* SCROLL FADE ANIMATIONS */
+    .scroll-fade {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .scroll-fade.in-view {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1000px) {
+      .start-grid { grid-template-columns: 1fr; }
+      .experiments-grid { grid-template-columns: 1fr; }
+      .foundation-card h3 { min-height: auto; }
+      .experiment-card { min-height: auto; }
+      .ecosystem-flow { 
+        grid-template-columns: 1fr; 
+        gap: 16px;
+      }
+      .ecosystem-arrow { 
+        display: block;
+        transform: rotate(90deg);
+        text-align: center;
+        margin: 0 auto;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .hero { padding: 120px 24px 60px; }
+      .hero-content { padding: 0; }
+      .finder-section { padding: 72px 24px; }
+      .search-input { padding: 16px 20px; font-size: 15px; }
+      .topic-chips { gap: 8px; }
+      .topic-chip { font-size: 11px; padding: 7px 14px; }
+      nav .container { padding: 0 24px; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .section { padding: 80px 24px; }
+      .ecosystem-section { padding: 80px 24px; }
+      .foundation-card { padding: 36px 28px; }
+      .final-cta-section { padding: 80px 24px; }
+      .final-cta-buttons { flex-direction: column; align-items: stretch; }
+      .final-cta-btn { text-align: center; }
+      footer .container { 
+        flex-direction: column; 
+        gap: 22px; 
+        text-align: center; 
+        padding: 0 24px;
+      }
+      .foot-links { flex-wrap: wrap; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <a href="/" class="nav-logo">
+      <svg class="nav-logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polygon points="15,15 82,42 50,55 38,88" fill="#00FF94"/></svg><span>Pick<em>Me</em>Labs</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/#how">How AI Chooses Brands</a></li>
+      <li><a href="/#offer">Visibility Experiment</a></li>
+      <li class="nav-dropdown">
+        <a href="/research.html">Research</a>
+        <div class="dropdown-menu">
+          <span class="dropdown-label">Start Here</span>
+          <a href="/research.html">Research Library</a>
+          <a href="/concepts.html">Concept System</a>
+          <a href="/methodology.html">Methodology</a>
+          <div class="dropdown-divider"></div>
+          <span class="dropdown-label">Experiments</span>
+          <a href="/research/protein-powder.html">Protein Powder Experiment</a>
+          <a href="/research/mattress.html">Mattress Experiment</a>
+          <a href="/research/beauty.html">Beauty Experiment</a>
+          <div class="dropdown-divider"></div>
+          <a href="/#lab">View all experiments →</a>
+        </div>
+      </li>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="/#contact" class="nav-cta">Get in Touch</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose" aria-label="Close menu">✕</button>
+<a href="/#how" class="mobile-link">How AI Chooses Brands</a>
+<a href="/#offer" class="mobile-link">Visibility Experiment</a>
+<a href="/research.html" class="mobile-link">Research Library</a>
+<a href="/#lab" class="mobile-link">Published Experiments</a>
+<a href="/about.html" class="mobile-link">About</a>
+<a href="/#contact" class="mobile-cta mobile-link">Get in Touch</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-content">
+    <span class="hero-label fade-1">RESEARCH LIBRARY</span>
+    <h1 class="fade-2">PickMeLabs Research Library</h1>
+    <p class="hero-subtitle fade-3">A growing database of experiments, frameworks, and research exploring how AI recommendation systems influence ecommerce discovery, brand visibility, and buying behaviour.</p>
+  </div>
+</section>
+
+<!-- RESEARCH FINDER -->
+<section class="finder-section">
+  <div class="container">
+    <h2 class="finder-heading scroll-fade">Search the library</h2>
+    <p class="finder-intro scroll-fade" style="transition-delay:0.1s;">
+      Search PickMeLabs research by concept, buying context, category, or recommendation pattern.
+    </p>
+    
+    <div class="search-container scroll-fade" style="transition-delay:0.15s;">
+      <input 
+        type="text" 
+        class="search-input" 
+        id="searchInput" 
+        placeholder='Try "AI visibility", "why competitors appear", or "category anchors"'
+      />
+    </div>
+
+    <div id="resultsSection" style="display: none;">
+      <button class="clear-search" id="clearSearch" type="button">← Clear search</button>
+      <span class="results-label" id="resultsLabel"></span>
+      <div class="results-container" id="resultsContainer"></div>
+    </div>
+    
+    <span class="topic-label">Browse by topic</span>
+    <div class="topic-chips">
+      <button class="topic-chip" data-topic="AI visibility">AI Visibility</button>
+      <button class="topic-chip" data-topic="buying context">Buying Context</button>
+      <button class="topic-chip" data-topic="category anchors">Category Anchors</button>
+      <button class="topic-chip" data-topic="recommendation eligibility">Recommendation Eligibility</button>
+      <button class="topic-chip" data-topic="AI SEO">AI SEO</button>
+      <button class="topic-chip" data-topic="competitors">Competitors</button>
+      <button class="topic-chip" data-topic="experiments">Experiments</button>
+      <button class="topic-chip" data-topic="Traditional SEO">Traditional SEO</button>
+    </div>
+  </div>
+</section>
+
+<!-- START HERE -->
+<section class="section">
+  <div class="container">
+    <h2 class="section-heading scroll-fade">Start here</h2>
+    <p class="section-intro scroll-fade" style="transition-delay:0.1s;">If you're new to PickMeLabs, these are the best places to understand how AI recommendation systems work, the frameworks we use to study them, and how our experiments are designed.</p>
+    
+    <div class="start-grid">
+      <a href="/ai-basics.html" class="foundation-card">
+        <h3>AI Basics</h3>
+        <p>Foundational concepts for understanding how AI systems retrieve, interpret, and recommend ecommerce brands across different buying environments.</p>
+        <span class="foundation-card-btn">Explore AI Basics →</span>
+      </a>
+      
+      <a href="/concepts.html" class="foundation-card">
+        <h3>The PickMeLabs Concept System</h3>
+        <p>The proprietary frameworks used throughout our research — AI Visibility, Recommendation Eligibility, Category Anchors, Buying Context, and Reinforcement Ecosystems.</p>
+        <span class="foundation-card-btn">Explore Concepts →</span>
+      </a>
+      
+      <a href="/methodology.html" class="foundation-card">
+        <h3>Methodology</h3>
+        <p>How PickMeLabs structures experiments, interprets recommendation variability, and studies AI systems across different buying environments.</p>
+        <span class="foundation-card-btn">View Methodology →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- RESEARCH NOTES -->
+<section class="section" style="padding-top: 80px;">
+  <div class="container">
+    <h2 class="section-heading">Research Notes</h2>
+    <p class="section-intro">Long-form analysis exploring recurring AI recommendation behaviour, brand visibility patterns, and how ecommerce discovery shifts across AI buying environments.</p>
+    
+    <div class="notes-grid">
+      <a href="/research-notes/how-ai-recommendation-systems-choose-brands.html" class="note-card">
+        <div class="note-meta">
+          <span class="note-type">Research Note</span>
+          <span class="note-date">Published May 2026</span>
+        </div>
+        <h3>How AI Recommendation Systems Choose Brands</h3>
+        <p>Understanding how AI systems surface products and companies in modern buying conversations — and why recommendation patterns differ from traditional search rankings.</p>
+      </a>
+      
+      <a href="/research-notes/why-some-famous-brands-rarely-appear-in-ai-answers.html" class="note-card">
+        <div class="note-meta">
+          <span class="note-type">Research Note</span>
+          <span class="note-date">Published May 2026</span>
+        </div>
+        <h3>Why Some Famous Brands Rarely Appear in AI Answers</h3>
+        <p>Exploring why broad awareness doesn't always translate into AI recommendation visibility — and what contextual clarity has to do with it.</p>
+      </a>
+      
+      <a href="/research-notes/category-anchors-why-ai-repeatedly-recommends-certain-brands.html" class="note-card">
+        <div class="note-meta">
+          <span class="note-type">Research Note</span>
+          <span class="note-date">Published May 2026</span>
+        </div>
+        <h3>Category Anchors: Why AI Repeatedly Recommends Certain Brands</h3>
+        <p>Understanding why some brands surface consistently across AI recommendation environments while others appear only in constrained contexts.</p>
+      </a>
+      
+      <a href="/research-notes/recommendation-eligibility-vs-traditional-seo.html" class="note-card">
+        <div class="note-meta">
+          <span class="note-type">Research Note</span>
+          <span class="note-date">Published May 2026</span>
+        </div>
+        <h3>Recommendation Eligibility vs Traditional SEO</h3>
+        <p>How AI recommendation inclusion differs from search engine rankings — and why traditional SEO strategies don't always translate.</p>
+      </a>
+      
+      <a href="/research-notes/how-buying-context-changes-ai-recommendations.html" class="note-card">
+        <div class="note-meta">
+          <span class="note-type">Research Note</span>
+          <span class="note-date">Published May 2026</span>
+        </div>
+        <h3>How Buying Context Changes AI Recommendations</h3>
+        <p>Examining how query framing, buyer constraints, and contextual signals influence which brands AI systems surface in recommendation environments.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- PUBLISHED EXPERIMENTS -->
+<section class="section" style="padding-top: 80px; border-top: 1px solid var(--line);">
+  <div class="container">
+    <h2 class="section-heading">Published Experiments</h2>
+    <p class="section-intro">Controlled ecommerce recommendation experiments run across AI systems to observe how brands surface, disappear, and repeat across buying environments.</p>
+    
+    <div class="experiments-grid">
+      <a href="/research/protein-powder.html" class="experiment-card">
+        <span class="experiment-label">Experiment</span>
+        <h3>Protein Powder: One Brand Dominates Most AI Responses</h3>
+        <span class="experiment-date">Published February 2026</span>
+      </a>
+      
+      <a href="/research/mattress.html" class="experiment-card">
+        <span class="experiment-label">Experiment</span>
+        <h3>Mattresses: Location Changes Which Brands AI Recommends</h3>
+        <span class="experiment-date">Published February 2026</span>
+      </a>
+      
+      <a href="/research/beauty.html" class="experiment-card">
+        <span class="experiment-label">Experiment</span>
+        <h3>Beauty: Strong Brands Missing From Most AI Responses</h3>
+        <span class="experiment-date">Published April 2026</span>
+      </a>
+    </div>
+    
+    <a href="/#lab" class="view-all-link">View all experiments →</a>
+  </div>
+</section>
+
+<!-- HOW THE RESEARCH CONNECTS - now 4 boxes -->
+<section class="ecosystem-section">
+  <div class="container">
+    <h2 class="ecosystem-heading">How the research connects together</h2>
+    
+    <div class="ecosystem-flow">
+      <div class="ecosystem-box">
+        <div class="ecosystem-box-label">Foundation</div>
+        <div class="ecosystem-box-title">AI Basics</div>
+        <p class="ecosystem-box-desc">How AI recommendation systems retrieve and interpret information</p>
+      </div>
+      
+      <div class="ecosystem-arrow">→</div>
+      
+      <div class="ecosystem-box">
+        <div class="ecosystem-box-label">Framework</div>
+        <div class="ecosystem-box-title">Concepts</div>
+        <p class="ecosystem-box-desc">Proprietary frameworks for studying AI visibility and recommendation behaviour</p>
+      </div>
+      
+      <div class="ecosystem-arrow">→</div>
+      
+      <div class="ecosystem-box">
+        <div class="ecosystem-box-label">Analysis</div>
+        <div class="ecosystem-box-title">Research</div>
+        <p class="ecosystem-box-desc">Long-form research exploring observed recommendation patterns</p>
+      </div>
+      
+      <div class="ecosystem-arrow">→</div>
+      
+      <div class="ecosystem-box">
+        <div class="ecosystem-box-label">Observations</div>
+        <div class="ecosystem-box-title">Experiments</div>
+        <p class="ecosystem-box-desc">Controlled studies generating the underlying recommendation data</p>
+      </div>
+    </div>
+    
+    <p class="ecosystem-explanation">
+      AI Basics explain how recommendation systems work. The Concept System provides the framework language used to study them. Research Notes analyze observed patterns. Experiments generate the underlying observations. Together, they form a structured research ecosystem exploring how AI recommendation systems choose ecommerce brands.
+    </p>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta-section">
+  <div class="container">
+    <h2 class="final-cta-heading">Understand how your brand appears across AI recommendation systems</h2>
+    <p class="final-cta-text">PickMeLabs helps ecommerce brands study how they surface across AI-generated buying environments — including recommendation patterns, competitor visibility, and shifting discovery behaviour across systems like ChatGPT, Claude, Gemini, and Perplexity.</p>
+    <div class="final-cta-buttons">
+      <a href="/#contact" class="final-cta-btn final-cta-btn-primary">Run an AI Visibility Experiment →</a>
+      <a href="/methodology.html" class="final-cta-btn final-cta-btn-secondary">View Methodology →</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p class="foot-logo">Pick<em>Me</em>Labs</p>
+    <ul class="foot-links">
+      <li><a href="/#how">How AI Chooses Brands</a></li>
+      <li><a href="/#offer">Visibility Experiment</a></li>
+      <li><a href="/research.html">Research</a></li>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ul>
+    <p class="foot-copy">© 2026 PickMeLabs</p>
+  </div>
+</footer>
+
+<!-- PAGE TRANSITION -->
+<div class="page-transition" id="pageTransition"></div>
+
+<script>
+// HAMBURGER MENU
+const hamburger = document.getElementById('hamburger');
+const mobileMenu = document.getElementById('mobileMenu');
+const mobileClose = document.getElementById('mobileClose');
+function closeMenu() {
+  hamburger.classList.remove('open');
+  mobileMenu.classList.remove('open');
+  document.body.style.overflow = '';
+}
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('open');
+  mobileMenu.classList.toggle('open');
+  document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
+});
+mobileClose.addEventListener('click', closeMenu);
+document.querySelectorAll('.mobile-link').forEach(link => {
+  link.addEventListener('click', closeMenu);
+});
+
+// PAGE TRANSITION
+const pageTransition = document.getElementById('pageTransition');
+window.addEventListener('pageshow', () => pageTransition.classList.remove('active'));
+document.querySelectorAll('a').forEach(link => {
+  const href = link.getAttribute('href');
+  if (href && !href.startsWith('#') && !href.startsWith('mailto') && !href.startsWith('http') && href !== '/#lab') {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      pageTransition.classList.add('active');
+      if (href.startsWith('/#')) {
+        sessionStorage.setItem('scrollTo', href.substring(1));
+        setTimeout(() => { window.location.href = '/'; }, 80);
+      } else {
+        setTimeout(() => { window.location.href = href; }, 80);
+      }
+    });
+  }
+});
+
+// PARTICLES
+const canvas = document.getElementById('heroCanvas');
+if (canvas) {
+  const ctx = canvas.getContext('2d');
+  function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  const isMobile = window.innerWidth < 820;
+  const speedMultiplier = isMobile ? 0.3 : 1;
+  const particles = Array.from({length: isMobile ? 35 : 70}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: (Math.random() - 0.5) * 0.35 * speedMultiplier,
+    vy: (Math.random() - 0.5) * 0.35 * speedMultiplier,
+    r: Math.random() * 1.2 + 0.4,
+    a: Math.random() * 0.45 + 0.1
+  }));
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const exW = canvas.width * 0.55;
+    const exH = canvas.height * 0.5;
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      const inZoneX = Math.abs(dx) < exW / 2;
+      const inZoneY = Math.abs(dy) < exH / 2;
+      if (inZoneX && inZoneY) {
+        const pushX = dx < 0 ? -1 : 1;
+        const pushY = dy < 0 ? -1 : 1;
+        const distX = (exW / 2 - Math.abs(dx)) / (exW / 2);
+        const distY = (exH / 2 - Math.abs(dy)) / (exH / 2);
+        p.vx += pushX * distX * 0.03;
+        p.vy += pushY * distY * 0.03;
+        const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        if (speed > 0.7) { p.vx = (p.vx / speed) * 0.7; p.vy = (p.vy / speed) * 0.7; }
+      }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,255,148,' + p.a + ')';
+      ctx.fill();
+    });
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d < 90) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = 'rgba(0,255,148,' + (0.07 * (1 - d/90)) + ')';
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+}
+
+// RESEARCH FINDER
+// ============================================================
+// This is a static curated search index. Add new pages here when new research is published.
+// To add new resources: add an object to the resources array below
+// ============================================================
+
+const resources = [
+  {
+    title: 'AI Basics',
+    type: 'Foundation',
+    url: '/ai-basics.html',
+    description: 'Foundational concepts for understanding how AI systems retrieve, interpret, and recommend ecommerce brands.',
+    keywords: 'AI basics fundamentals foundations LLM large language models how AI works AI retrieval AI interpretation tokenization embeddings vector search semantic search neural networks training data context windows ChatGPT Claude Gemini Perplexity AI Overviews foundation introduction beginners getting started'
+  },
+  {
+    title: 'Research Notes Archive',
+    type: 'Research Archive',
+    url: '/research-notes.html',
+    description: 'Complete archive of all PickMeLabs research notes exploring AI recommendation patterns, ecommerce discovery, and buying behaviour.',
+    keywords: 'research notes archive all articles research library article index long-form research analysis AI patterns ecommerce discovery buying behaviour recommendation systems research collection'
+  },
+  {
+    title: 'The PickMeLabs Concept System',
+    type: 'Concept',
+    url: '/concepts.html',
+    description: 'Core frameworks for understanding Recommendation Eligibility, Category Anchors, Buying Context, Reinforcement Ecosystems, and AI recommendation confidence.',
+    keywords: 'concepts frameworks concept system core concepts recommendation eligibility category anchors buying context reinforcement ecosystems recommendation confidence contextual relevance category association third-party validation buyer-language fit AI visibility framework language definitions terminology glossary conceptual framework research framework ChatGPT Claude Gemini Perplexity AI Overviews Google AI ecommerce product discovery buying journey'
+  },
+  {
+    title: 'Methodology',
+    type: 'Methodology',
+    url: '/methodology.html',
+    description: 'How PickMeLabs experiments are designed, structured, and interpreted across AI recommendation systems.',
+    keywords: 'methodology experiment design research method experimental design how experiments work testing process controlled experiments visibility experiment research process experiment structure prompts prompt design query design AI testing ChatGPT testing Claude testing Gemini testing Perplexity testing AI systems testing prompt engineering experiment methodology experimental approach research design'
+  },
+  {
+    title: 'How AI Recommendation Systems Choose Brands',
+    type: 'Research Note',
+    url: '/research-notes/how-ai-recommendation-systems-choose-brands.html',
+    description: 'Understanding how AI systems surface products and companies in modern buying conversations.',
+    keywords: 'how AI chooses brands AI recommendations AI search AI SEO AEO GEO brand selection recommendation systems how AI works AI decision-making brand surfacing product discovery competitors competitor analysis why competitors appear why competitors show up competitor visibility competitor recommendations ecommerce AI ChatGPT recommendations Claude recommendations Gemini recommendations Perplexity recommendations AI Overviews Google AI AI commerce systems buying journey buyer intent comparison shopping AI-driven buying recommendation patterns AI visibility brand inclusion contextual relevance recommendation confidence'
+  },
+  {
+    title: 'Why Some Famous Brands Rarely Appear in AI Answers',
+    type: 'Research Note',
+    url: '/research-notes/why-some-famous-brands-rarely-appear-in-ai-answers.html',
+    description: 'Why broad brand awareness does not always translate into AI recommendation visibility.',
+    keywords: 'famous brands brand awareness AI answers missing brands absent brands competitors competitor visibility why competitors appear why competitors show up competitor recommendations competitor surfacing recommendation visibility brand visibility why brands disappear brand exclusion well-known brands big brands AI gaps visibility gaps contextual clarity ecommerce ChatGPT Claude Gemini Perplexity AI Overviews brand awareness vs visibility category association buyer-language fit'
+  },
+  {
+    title: 'Category Anchors: Why AI Repeatedly Recommends Certain Brands',
+    type: 'Research Note',
+    url: '/research-notes/category-anchors-why-ai-repeatedly-recommends-certain-brands.html',
+    description: 'Why some brands become recurring reference points across AI-generated recommendation environments.',
+    keywords: 'category anchors repeated recommendations recurring brands default brands category leaders brand reinforcement dominant brands repeated mentions AI patterns consistent recommendations recommendation frequency category association category leadership ecommerce product discovery ChatGPT patterns Claude patterns Gemini patterns Perplexity patterns AI Overviews patterns reinforcement ecosystems third-party validation'
+  },
+  {
+    title: 'Recommendation Eligibility vs Traditional SEO',
+    type: 'Research Note',
+    url: '/research-notes/recommendation-eligibility-vs-traditional-seo.html',
+    description: 'How AI recommendation inclusion differs from traditional search engine rankings.',
+    keywords: 'recommendation eligibility traditional SEO AI SEO AEO GEO search rankings AI visibility inclusion SEO vs AI difference between SEO and AI search engine optimization answer engine optimization generative engine optimization recommendation vs search AI recommendations vs search results ecommerce discovery product discovery ChatGPT SEO Claude SEO Gemini SEO Perplexy SEO AI Overviews SEO Google AI contextual relevance buyer-language fit category association'
+  },
+  {
+    title: 'How Buying Context Changes AI Recommendations',
+    type: 'Research Note',
+    url: '/research-notes/how-buying-context-changes-ai-recommendations.html',
+    description: 'How query framing, constraints, geography, and buyer intent influence which brands AI systems recommend.',
+    keywords: 'buying context buyer intent constraints geography location prompts query framing contextual recommendations context-dependent recommendations situational recommendations query design prompt variations geographic recommendations regional recommendations buyer constraints budget constraints use case shopping context ecommerce buying journey comparison shopping ChatGPT context Claude context Gemini context Perplexity context AI Overviews context contextual relevance'
+  },
+  {
+    title: 'Protein Powder Experiment',
+    type: 'Experiment',
+    url: '/research/protein-powder.html',
+    description: 'A category experiment showing how one protein powder brand appeared repeatedly across AI responses.',
+    keywords: 'protein powder supplements experiment category anchor repeated recommendations clean ingredients supplements category fitness nutrition health wellness ecommerce product discovery ChatGPT experiment Claude experiment Gemini experiment Perplexity experiment AI Overviews experiment category anchors recommendation patterns brand dominance supplement recommendations protein recommendations'
+  },
+  {
+    title: 'Mattress Experiment',
+    type: 'Experiment',
+    url: '/research/mattress.html',
+    description: 'A recommendation experiment showing how location and buying context changed which mattress brands AI surfaced.',
+    keywords: 'mattress mattresses sleep home location geography buying context experiment regional recommendations geographic variation location-based recommendations mattress category home goods furniture ecommerce product discovery ChatGPT experiment Claude experiment Gemini experiment Perplexity experiment AI Overviews experiment contextual recommendations geographic recommendations'
+  },
+  {
+    title: 'Beauty Experiment',
+    type: 'Experiment',
+    url: '/research/beauty.html',
+    description: 'A beauty and skincare experiment showing how recognized brands were absent from many AI-generated recommendations.',
+    keywords: 'beauty skincare cosmetics makeup Rare Beauty Kulfi Beauty famous brands missing brands absent brands experiment beauty category skincare category cosmetics ecommerce product discovery brand visibility brand absence ChatGPT experiment Claude experiment Gemini experiment Perplexity experiment AI Overviews experiment beauty recommendations skincare recommendations'
+  }
+];
+
+const searchInput = document.getElementById('searchInput');
+
+if (window.innerWidth <= 820) {
+  searchInput.placeholder = 'Try "AI visibility" or "why competitors appear"';
+}
+
+const resultsContainer = document.getElementById('resultsContainer');
+const resultsLabel = document.getElementById('resultsLabel');
+const resultsSection = document.getElementById('resultsSection');
+const clearSearchBtn = document.getElementById('clearSearch');
+const topicChips = document.querySelectorAll('.topic-chip');
+
+function renderResults(results, label = 'Matching resources') {
+  resultsSection.style.display = 'block';
+  resultsLabel.textContent = label;
+  
+  if (results.length === 0) {
+    resultsContainer.innerHTML = `
+      <div class="no-results">
+        No exact match yet. Try searching for "AI visibility", "competitors", "buying context", or "category anchors".
+      </div>
+    `;
+    return;
+  }
+  
+  const limitedResults = results.slice(0, 5);
+  
+  resultsContainer.innerHTML = limitedResults.map(resource => `
+    <a href="${resource.url}" class="result-card">
+      <span class="result-type">${resource.type}</span>
+      <h3>${resource.title}</h3>
+      <p>${resource.description}</p>
+    </a>
+  `).join('');
+}
+
+function hideResults() {
+  resultsSection.style.display = 'none';
+}
+
+function searchResources(query) {
+  if (!query || query.trim() === '') {
+    hideResults();
+    return;
+  }
+  
+  const lowerQuery = query.toLowerCase();
+  
+  const matches = resources.filter(resource => {
+    const searchableText = `
+      ${resource.title}
+      ${resource.type}
+      ${resource.description}
+      ${resource.keywords}
+    `.toLowerCase();
+    
+    return searchableText.includes(lowerQuery);
+  });
+  
+  renderResults(matches, 'Matching resources');
+}
+
+searchInput.addEventListener('input', (e) => {
+  searchResources(e.target.value);
+  topicChips.forEach(chip => chip.classList.remove('active'));
+});
+
+topicChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    const topic = chip.dataset.topic;
+    const isActive = chip.classList.contains('active');
+    topicChips.forEach(c => c.classList.remove('active'));
+    
+    if (!isActive) {
+      chip.classList.add('active');
+      searchInput.value = topic;
+      searchResources(topic);
+    } else {
+      searchInput.value = '';
+      searchResources('');
+    }
+  });
+});
+
+// CLEAR SEARCH — resets input, pills, and results to default state
+function clearSearch() {
+  searchInput.value = '';
+  topicChips.forEach(chip => chip.classList.remove('active'));
+  hideResults();
+}
+
+clearSearchBtn.addEventListener('click', clearSearch);
+
+hideResults();
+
+// SCROLL FADE SECTIONS
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('in-view');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0, rootMargin: '0px 0px -60px 0px' });
+
+document.querySelectorAll('.scroll-fade').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

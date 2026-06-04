@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recommendation Eligibility vs Traditional SEO | PickMeLabs</title>
+  <meta name="description" content="Why AI-generated recommendation systems may prioritize contextual fit and recommendation confidence differently than traditional search engines." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black: #080808;
+      --green: #00FF94;
+      --green-glow: rgba(0,255,148,0.08);
+      --white: #F0EFE9;
+      --text: rgba(240,239,233,0.72);
+      --text-bright: rgba(240,239,233,0.9);
+      --text-dim: rgba(240,239,233,0.45);
+      --line: rgba(240,239,233,0.06);
+      --line-subtle: rgba(240,239,233,0.03);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black); color: var(--text);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 17px; line-height: 1.7;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 22px 0; background: rgba(8,8,8,0.94); backdrop-filter: blur(20px); border-bottom: 1px solid var(--line); }
+    nav .container { max-width: 960px; margin: 0 auto; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 10px; }
+    .nav-logo em { color: var(--green); font-style: normal; }
+    .nav-logo-icon { width: 22px; height: 22px; flex-shrink: 0; }
+    .nav-links { list-style: none; display: flex; align-items: center; gap: 22px; }
+    .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta { background: var(--green) !important; color: var(--black) !important; padding: 8px 20px; border-radius: 4px; font-weight: 600 !important; font-size: 13px !important; }
+    .nav-cta:hover { opacity: 0.9 !important; }
+    .nav-dropdown { position: relative; }
+    .nav-dropdown > a { display: flex; align-items: center; gap: 5px; }
+    .nav-dropdown > a::after { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform 0.2s; }
+    .nav-dropdown:hover > a::after { transform: rotate(-135deg) translateY(-2px); }
+    .dropdown-menu { position: absolute; top: calc(100% + 16px); left: 50%; transform: translateX(-50%); background: rgba(12,12,12,0.98); backdrop-filter: blur(24px); border: 1px solid var(--line); border-radius: 12px; padding: 10px; min-width: 300px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease; transform: translateX(-50%) translateY(-8px); z-index: 200; }
+    .nav-dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    .dropdown-menu a { display: block; padding: 11px 16px; border-radius: 8px; font-size: 13px; color: var(--text-dim) !important; transition: background 0.15s, color 0.15s !important; white-space: nowrap; }
+    .dropdown-menu a:hover { background: var(--green-glow); color: var(--white) !important; }
+    .dropdown-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(240,239,233,0.25); padding: 10px 16px 6px; display: block; }
+    .dropdown-divider { height: 1px; background: var(--line); margin: 8px 10px; }
+
+    /* HAMBURGER */
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 4px; cursor: pointer; z-index: 200; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--white); border-radius: 2px; transition: transform 0.3s ease, opacity 0.3s ease; }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* MOBILE MENU */
+    .mobile-menu { position: fixed; inset: 0; background: rgba(8,8,8,0.98); backdrop-filter: blur(20px); z-index: 150; flex-direction: column; align-items: center; justify-content: center; gap: 8px; opacity: 0; visibility: hidden; display: flex; transition: opacity 0.3s ease, visibility 0.3s ease; }
+    .mobile-menu.open { opacity: 1; visibility: visible; }
+    .mobile-menu a { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; color: var(--text-dim); text-decoration: none; letter-spacing: -0.02em; padding: 12px 0; transition: color 0.2s; }
+    .mobile-menu a:hover { color: var(--white); }
+    .mobile-menu .mobile-cta { margin-top: 24px; background: var(--green); color: var(--black); font-size: 16px; font-weight: 700; padding: 14px 36px; border-radius: 4px; }
+    .mobile-close { position: absolute; top: 24px; right: 24px; background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer; padding: 8px; transition: color 0.2s; }
+    .mobile-close:hover { color: var(--white); }
+
+    /* HERO */
+    .article-hero { padding: 120px 0 64px; border-bottom: 1px solid var(--line); position: relative; overflow: hidden; }
+    .article-hero::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 900px; height: 700px; background: radial-gradient(ellipse, rgba(0,255,148,0.04) 0%, transparent 65%); pointer-events: none; z-index: 0; }
+    .article-hero .article-container { position: relative; z-index: 1; padding-bottom: 0; }
+
+    /* ARTICLE CONTAINER */
+    .article-container { max-width: 920px; margin: 0 auto; padding: 60px 48px 100px; }
+
+    /* ARTICLE HEADER */
+    .article-header { margin-bottom: 0; }
+    .article-meta { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+    .article-type { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green); }
+    .article-date { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: rgba(240,239,233,0.28); }
+    .article-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(32px, 5vw, 54px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.1; color: var(--white); margin-bottom: 24px; text-wrap: pretty; }
+    .article-dek { font-size: 19px; line-height: 1.6; color: var(--text-bright); max-width: 720px; }
+
+    /* ARTICLE BODY */
+    article { font-size: 17px; line-height: 1.7; }
+    article h2 { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.35; color: var(--white); margin: 72px 0 20px; }
+    article h3 { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.4; color: var(--white); margin: 64px 0 24px; }
+    article p { margin-bottom: 24px; color: var(--text); }
+    article p strong { color: var(--white); font-weight: 600; }
+    article a { color: var(--white); text-decoration: none; border-bottom: 1px solid rgba(0,255,148,0.35); transition: border-color 0.2s; }
+    article a:hover { border-bottom-color: var(--green); }
+    article ul { margin: 26px 0; padding-left: 28px; list-style: none; }
+    article li { position: relative; padding-left: 0; margin-bottom: 11px; color: var(--text); }
+    article li::before { content: '·'; position: absolute; left: -28px; color: var(--text-dim); font-size: 24px; line-height: 1.7; }
+
+    /* KEY INSIGHT */
+    .key-insight { background: linear-gradient(135deg, rgba(0,255,148,0.03) 0%, rgba(0,255,148,0.01) 100%); border-left: 2px solid rgba(0,255,148,0.3); padding: 40px 44px; margin: 88px 0; border-radius: 4px; }
+    .key-insight-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green); margin-bottom: 18px; display: block; }
+    .key-insight p { font-size: 18px; line-height: 1.65; color: var(--white); margin: 0; }
+    .key-insight p + p { margin-top: 16px; font-size: 16px; color: var(--text-bright); }
+
+    /* OBSERVED PATTERN */
+    .observed-pattern { padding-left: 32px; border-left: 2px solid var(--line-subtle); margin: 72px 0; max-width: 800px; }
+    .observed-pattern-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; display: block; }
+    .observed-pattern p { font-size: 17px; line-height: 1.65; color: var(--white); font-weight: 500; margin: 0; }
+
+    /* FRAMEWORK LABEL */
+    .framework-section { margin: 88px 0; }
+    .framework-label { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.35; color: var(--white); margin-bottom: 20px; display: block; }
+
+    /* CONTRAST CARDS — Two Visibility Systems */
+    .contrast-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 24px 0 80px; align-items: stretch; }
+    .contrast-card { background: rgba(240,239,233,0.02); border: 1px solid var(--line); border-radius: 6px; padding: 36px 32px; cursor: default; }
+    .contrast-card-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 14px; display: block; }
+    .contrast-card-title { font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600; color: var(--white); letter-spacing: -0.01em; margin-bottom: 24px; }
+    .contrast-card-title.green { color: var(--green); }
+    .contrast-card-bullets { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+    .contrast-card-bullets li { font-size: 14px; color: var(--text); line-height: 1.5; display: flex; align-items: flex-start; gap: 10px; padding-left: 0; margin-bottom: 0; }
+    .contrast-card-bullets li::before { display: none; }
+    .contrast-bullet-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(240,239,233,0.25); flex-shrink: 0; margin-top: 8px; }
+    .contrast-bullet-dot.green { background: rgba(0,255,148,0.5); }
+
+    /* NUMBERED CARDS */
+    .numbered-grid-2x2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 24px 0 80px; }
+    .numbered-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 24px 0 80px; }
+    .numbered-grid-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 24px 0 80px; }
+    .numbered-grid-6 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 24px 0 80px; }
+    .numbered-card { background: rgba(240,239,233,0.02); border: 1px solid var(--line); border-radius: 6px; padding: 36px 30px; cursor: default; display: flex; flex-direction: column; }
+    .numbered-card-num { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--green); margin-bottom: 18px; display: block; opacity: 0.7; }
+    .numbered-card-title { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; color: var(--white); letter-spacing: -0.01em; line-height: 1.35; margin-bottom: 14px; min-height: 44px; }
+    .numbered-card-body { font-size: 14px; line-height: 1.7; color: var(--text); }
+
+    /* VISIBILITY STACK */
+    .stack-section { margin: 24px 0 80px; }
+    .stack-track { display: flex; flex-direction: column; gap: 0; max-width: 560px; margin: 0 auto; }
+    .stack-step { background: rgba(240,239,233,0.02); border: 1px solid var(--line); border-radius: 6px; padding: 24px 32px; cursor: default; }
+    .stack-step.highlight { background: rgba(0,255,148,0.04); border-color: rgba(0,255,148,0.25); }
+    .stack-step.top { background: rgba(0,255,148,0.08); border-color: rgba(0,255,148,0.45); }
+    .stack-step-num { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; display: block; }
+    .stack-step.highlight .stack-step-num, .stack-step.top .stack-step-num { color: var(--green); opacity: 0.8; }
+    .stack-step-title { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; color: var(--white); letter-spacing: -0.01em; }
+    .stack-step.top .stack-step-title { color: var(--green); }
+    .stack-step-body { font-size: 13px; line-height: 1.6; color: var(--text); margin-top: 8px; }
+    .stack-connector { display: flex; align-items: center; justify-content: center; height: 32px; }
+
+    /* BEAUTY EXPERIMENT TABLE */
+    .data-table-container { margin: 32px 0 80px; }
+    .data-table-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 22px; display: block; }
+    .data-table { width: 100%; border-collapse: collapse; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+    .data-table thead { background: rgba(0,255,148,0.04); border-bottom: 1px solid var(--line); }
+    .data-table th { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); font-weight: 500; text-align: left; padding: 20px 32px; }
+    .data-table td { padding: 22px 32px; color: var(--text); font-size: 15px; border-bottom: 1px solid var(--line-subtle); }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table td:first-child { color: var(--white); font-weight: 500; }
+    .table-caption { margin-top: 16px; font-size: 13px; color: var(--text-dim); font-style: italic; }
+
+    /* EXPERIMENT SECTION LABEL */
+    .experiment-section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green); opacity: 0.7; margin-bottom: 28px; display: block; }
+
+    /* CONTEXT CARDS */
+    .context-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 24px 0 80px; align-items: stretch; }
+    .context-card { background: rgba(240,239,233,0.02); border: 1px solid var(--line); border-radius: 6px; padding: 30px 26px; cursor: default; display: flex; flex-direction: column; }
+    .context-card-type { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green); margin-bottom: 16px; display: block; }
+    .context-card-prompt { font-family: 'DM Mono', monospace; font-size: 13px; color: rgba(240,239,233,0.75); line-height: 1.6; padding: 14px 16px; background: rgba(240,239,233,0.03); border: 1px solid var(--line); border-radius: 3px; margin-bottom: auto; display: block; }
+    .context-card-output-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-top: 24px; margin-bottom: 10px; display: block; }
+    .context-card-output { font-size: 14px; color: var(--text); line-height: 1.6; }
+
+    /* TAKEAWAYS */
+    .takeaways-section { margin: 88px 0; }
+    .takeaways-section .framework-label { margin-bottom: 32px; }
+    .takeaways-row-top { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+    .takeaways-row-bottom { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .takeaway-card { background: rgba(240,239,233,0.02); border: 1px solid var(--line); border-radius: 6px; padding: 28px 26px; cursor: default; }
+    .takeaway-num { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--green); margin-bottom: 12px; display: block; opacity: 0.7; }
+    .takeaway-title { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600; color: var(--white); letter-spacing: -0.01em; line-height: 1.4; margin-bottom: 8px; }
+    .takeaway-body { font-size: 13px; line-height: 1.65; color: var(--text); }
+
+    /* SECTION DIVIDER */
+    .section-divider { height: 1px; background: var(--line); margin: 108px 0; }
+
+    /* SOURCES */
+    .sources-section { padding: 72px 0 100px; border-top: 1px solid var(--line); }
+    .sources-section .container { max-width: 920px; margin: 0 auto; padding: 0 48px; }
+    .sources-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 26px; display: block; }
+    .sources-list { display: flex; flex-direction: column; gap: 17px; }
+    .source-item { font-size: 15px; color: var(--text); line-height: 1.7; }
+    .source-item a { color: var(--white); border-bottom-color: rgba(0,255,148,0.35); }
+
+    /* RELATED */
+    .related-section { padding: 88px 0; border-top: 1px solid var(--line); }
+    .related-section .container { max-width: 1080px; margin: 0 auto; padding: 0 48px; }
+    .related-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--green); margin-bottom: 34px; display: block; }
+    .related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .related-card { background: rgba(240,239,233,0.02); border: 1px solid var(--line); border-radius: 10px; padding: 28px 32px; text-decoration: none; display: block; transition: border-color 0.3s, background 0.3s; }
+    .related-card:hover { border-color: rgba(0,255,148,0.2); background: rgba(0,255,148,0.02); }
+    .related-card-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 11px; display: block; }
+    .related-card h3 { font-size: 16px; font-weight: 600; line-height: 1.4; color: var(--white); margin: 0; }
+
+    /* FOOTER */
+    footer { border-top: 1px solid var(--line); padding: 44px 0; }
+    footer .container { max-width: 1280px; margin: 0 auto; padding: 0 48px; display: flex; align-items: center; justify-content: space-between; }
+    .foot-logo { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text-dim); }
+    .foot-logo em { color: var(--green); font-style: normal; }
+    .foot-links { list-style: none; display: flex; gap: 30px; }
+    .foot-links a { font-size: 13px; color: var(--text-dim); text-decoration: none; font-weight: 500; transition: color 0.2s; }
+    .foot-links a:hover { color: var(--white); }
+    .foot-copy { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(240,239,233,0.2); }
+
+    /* PAGE TRANSITION */
+    .page-transition { position: fixed; inset: 0; background: var(--black); z-index: 99998; opacity: 0; pointer-events: none; transition: opacity 0.1s ease; }
+    .page-transition.active { opacity: 1; pointer-events: all; }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-1, .fade-2, .fade-3 { opacity: 0; animation: fadeUp 0.7s ease forwards; }
+    .fade-1 { animation-delay: 0.08s; }
+    .fade-2 { animation-delay: 0.18s; }
+    .fade-3 { animation-delay: 0.28s; }
+    .scroll-fade { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .scroll-fade.in-view { opacity: 1; transform: translateY(0); }
+
+    /* RESPONSIVE */
+    @media (max-width: 820px) {
+      .article-container { padding: 30px 24px 72px; }
+      nav .container { padding: 0 24px; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .contrast-grid { grid-template-columns: 1fr; }
+      .numbered-grid-2x2 { grid-template-columns: 1fr; }
+      .numbered-grid-3 { grid-template-columns: 1fr; }
+      .numbered-grid-3col { grid-template-columns: 1fr; }
+      .numbered-grid-6 { grid-template-columns: 1fr; }
+      .context-grid { grid-template-columns: 1fr; }
+      .takeaways-row-top { grid-template-columns: 1fr; }
+      .takeaways-row-bottom { grid-template-columns: 1fr; }
+      .related-grid { grid-template-columns: 1fr; }
+      .related-section .container { padding: 0 24px; }
+      .sources-section .container { padding: 0 24px; }
+      footer .container { flex-direction: column; gap: 22px; text-align: center; padding: 0 24px; }
+      .foot-links { flex-wrap: wrap; justify-content: center; }
+      .data-table th, .data-table td { padding: 16px 20px; font-size: 13px; }
+      .stack-track { max-width: 100%; }
+    }
+    @media (min-width: 821px) and (max-width: 960px) {
+      .numbered-grid-6 { grid-template-columns: repeat(2, 1fr); }
+      .takeaways-row-top { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <a href="/" class="nav-logo">
+      <svg class="nav-logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polygon points="15,15 82,42 50,55 38,88" fill="#00FF94"/></svg>
+      <span>Pick<em>Me</em>Labs</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/#how">How AI Chooses Brands</a></li>
+      <li><a href="/#offer">Visibility Experiment</a></li>
+      <li class="nav-dropdown">
+        <a href="/research.html">Research</a>
+        <div class="dropdown-menu">
+          <span class="dropdown-label">Start Here</span>
+          <a href="/research.html">Research Library</a>
+          <a href="/concepts.html">Concept System</a>
+          <a href="/methodology.html">Methodology</a>
+          <div class="dropdown-divider"></div>
+          <span class="dropdown-label">Experiments</span>
+          <a href="/research/protein-powder.html">Protein Powder Experiment</a>
+          <a href="/research/mattress.html">Mattress Experiment</a>
+          <a href="/research/beauty.html">Beauty Experiment</a>
+          <div class="dropdown-divider"></div>
+          <a href="/#lab">View all experiments →</a>
+        </div>
+      </li>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="/#contact" class="nav-cta">Get in Touch</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose" aria-label="Close menu">✕</button>
+  <a href="/#how" class="mobile-link">How AI Chooses Brands</a>
+  <a href="/#offer" class="mobile-link">Visibility Experiment</a>
+  <a href="/research.html" class="mobile-link">Research Library</a>
+  <a href="/#lab" class="mobile-link">Published Experiments</a>
+  <a href="/about.html" class="mobile-link">About</a>
+  <a href="/#contact" class="mobile-cta mobile-link">Get in Touch</a>
+</div>
+
+<!-- HERO -->
+<section class="article-hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="article-container">
+    <header class="article-header">
+      <div class="article-meta fade-1">
+        <span class="article-type">Research Note</span>
+        <span class="article-date">May 2026</span>
+      </div>
+      <h1 class="fade-2">Recommendation Eligibility vs Traditional SEO</h1>
+      <p class="article-dek fade-3">Why AI-generated recommendation systems may prioritize contextual fit and recommendation confidence differently than traditional search engines.</p>
+    </header>
+  </div>
+</section>
+
+<!-- ARTICLE BODY -->
+<div class="article-container">
+  <article>
+
+    <p>For years, digital visibility meant ranking on Google, appearing on page one, and winning keywords. That environment shaped how brands approached content, authority, and ecommerce growth.</p>
+
+    <p>AI-assisted discovery environments appear to behave differently. Instead of generating a ranked list of links, AI systems synthesise information and produce <strong>direct recommendations</strong> — surfacing specific brands as the answer to a buyer's question.</p>
+
+    <p>This creates a new visibility layer with different rules. We call a brand's standing within that layer its <strong>Recommendation Eligibility</strong>.</p>
+
+    <p><strong>Recommendation Eligibility:</strong> A brand's apparent likelihood of being included within a recommendation environment for a specific buyer context.</p>
+
+    <p>Recommendation eligibility is not the same as traditional search visibility — and the distinction may become one of the most important shifts in ecommerce discovery over the next decade.</p>
+
+    <!-- TWO VISIBILITY SYSTEMS -->
+    <div class="framework-section scroll-fade">
+      <span class="framework-label">Two Different Visibility Systems</span>
+      <div class="contrast-grid">
+        <div class="contrast-card">
+          <span class="contrast-card-label">System 01</span>
+          <div class="contrast-card-title">Traditional Search Visibility</div>
+          <ul class="contrast-card-bullets">
+            <li><span class="contrast-bullet-dot"></span>Rankings</li>
+            <li><span class="contrast-bullet-dot"></span>Clicks</li>
+            <li><span class="contrast-bullet-dot"></span>Traffic</li>
+            <li><span class="contrast-bullet-dot"></span>SERP position</li>
+          </ul>
+        </div>
+        <div class="contrast-card">
+          <span class="contrast-card-label">System 02</span>
+          <div class="contrast-card-title green">Recommendation Eligibility</div>
+          <ul class="contrast-card-bullets">
+            <li><span class="contrast-bullet-dot green"></span>Inclusion</li>
+            <li><span class="contrast-bullet-dot green"></span>Recommendation frequency</li>
+            <li><span class="contrast-bullet-dot green"></span>Contextual fit</li>
+            <li><span class="contrast-bullet-dot green"></span>Recommendation consistency</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <h2>Traditional SEO was built around rankings</h2>
+
+    <p>Traditional search engine optimization developed around a clear framework: keyword rankings, backlink authority, crawlability, SERP positioning, and click-through rates. This environment rewarded brands that could build domain authority, earn editorial links, and optimize content for specific search terms.</p>
+
+    <p>According to <a href="https://developers.google.com/search/docs/fundamentals/how-search-works" target="_blank" rel="noopener noreferrer">Google Search fundamentals</a>, traditional search works through crawling, indexing, and ranking — a well-documented retrieval and relevance framework.</p>
+
+    <p>SEO remains important. Strong technical SEO, content quality, and authority signals still matter for discoverability and ecosystem presence. However, AI recommendation environments introduce a different layer that SEO alone does not address.</p>
+
+    <h2>Ranking visibility does not always equal recommendation eligibility</h2>
+
+    <p>A brand can rank well on Google while appearing inconsistently — or not at all — within AI-generated recommendation responses. Research from <a href="https://www.capgemini.com/insights/research-library/what-matters-to-todays-consumer-2025/" target="_blank" rel="noopener noreferrer">Capgemini Research Institute</a> found that 58% of consumers prefer product recommendations from generative AI tools over traditional search engines. <a href="https://business.adobe.com/blog/generative-ai-powered-shopping-rises-with-traffic-to-retail-sites" target="_blank" rel="noopener noreferrer">Adobe</a> reported continued growth in generative AI-driven traffic through 2025.</p>
+
+    <!-- VISIBILITY VS ELIGIBILITY: 4 CARDS -->
+    <div class="framework-section scroll-fade">
+      <span class="framework-label">Visibility vs Eligibility</span>
+      <div class="numbered-grid-2x2">
+        <div class="numbered-card">
+          <span class="numbered-card-num">High Visibility · High Eligibility</span>
+          <div class="numbered-card-title">Category Anchor</div>
+          <div class="numbered-card-body">Strong search presence and strong contextual association. These brands surface across both traditional search and AI recommendation environments.</div>
+        </div>
+        <div class="numbered-card">
+          <span class="numbered-card-num">High Visibility · Low Eligibility</span>
+          <div class="numbered-card-title">Search-Optimized but Context-Weak</div>
+          <div class="numbered-card-body">Ranks well in traditional search but lacks consistent contextual association with specific buyer scenarios. May disappear in constrained recommendation environments.</div>
+        </div>
+        <div class="numbered-card">
+          <span class="numbered-card-num">Low Visibility · High Eligibility</span>
+          <div class="numbered-card-title">Contextual Specialist</div>
+          <div class="numbered-card-body">Lower general search presence but strong contextual positioning. Surfaces consistently in specific constrained recommendation environments despite lower overall awareness.</div>
+        </div>
+        <div class="numbered-card">
+          <span class="numbered-card-num">Low Visibility · Low Eligibility</span>
+          <div class="numbered-card-title">Discovery Gap</div>
+          <div class="numbered-card-body">Limited presence in both traditional search and AI recommendation environments. Needs foundational work on both authority and contextual positioning.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="key-insight">
+      <span class="key-insight-label">Key Distinction</span>
+      <p>Traditional SEO optimizes for rankings. Recommendation eligibility may require optimizing for contextual inclusion within synthesis-driven recommendation environments.</p>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <h2>The Beauty Experiment: when awareness doesn't translate to inclusion</h2>
+
+    <span class="experiment-section-label">Observed in the PickMeLabs <a href="/research/beauty.html" style="color:var(--green);border-bottom:1px solid rgba(0,255,148,0.35);text-decoration:none;">Beauty Experiment</a></span>
+
+    <p>The <a href="/research/beauty.html">PickMeLabs Beauty Experiment</a> provided strong evidence that brand awareness alone does not guarantee recommendation inclusion. Across 40 responses on ChatGPT and Claude, widely recognized celebrity-backed beauty brands appeared in fewer than 1 in 5 recommendation outputs.</p>
+
+    <div class="data-table-container scroll-fade">
+      <span class="data-table-label">Recommendation frequency — Beauty Experiment</span>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Brand</th>
+            <th>Appearances</th>
+            <th>Inclusion Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Rare Beauty</td><td>7/40</td><td>17.5%</td></tr>
+          <tr><td>Kulfi Beauty</td><td>3/40</td><td>7.5%</td></tr>
+          <tr><td>Neither</td><td>30/40</td><td>75%</td></tr>
+        </tbody>
+      </table>
+      <p class="table-caption">Despite high brand awareness, celebrity-backed brands appeared in fewer than 1 in 5 responses.</p>
+    </div>
+
+    <p>A famous brand may have enormous cultural visibility while lacking strong association with specific recommendation scenarios. Conversely, a smaller brand with tight contextual positioning may develop higher recommendation eligibility within its category — even without broad consumer awareness.</p>
+
+    <div class="observed-pattern">
+      <span class="observed-pattern-label">Observed Pattern</span>
+      <p>Awareness is different from recommendation eligibility. High visibility in culture or search does not automatically translate into consistent AI inclusion.</p>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <h2>How context changes eligibility</h2>
+
+    <p>Recommendation eligibility is not static. It shifts based on how the buyer frames the question. Broad queries surface broad recommendation pools. Constrained queries often produce entirely different brand sets — with different eligibility profiles.</p>
+
+    <!-- CONTEXT CARDS -->
+    <div class="context-grid scroll-fade">
+      <div class="context-card">
+        <span class="context-card-type">Broad Query</span>
+        <span class="context-card-prompt">"Best mattress"</span>
+        <span class="context-card-output-label">Recommendation environment</span>
+        <div class="context-card-output">Category leaders with strong general-market positioning. Broad eligibility — the widest pool.</div>
+      </div>
+      <div class="context-card">
+        <span class="context-card-type">Constraint-Led Query</span>
+        <span class="context-card-prompt">"Best mattress for hot sleepers with back pain"</span>
+        <span class="context-card-output-label">Recommendation environment</span>
+        <div class="context-card-output">Brands with problem-specific positioning and use-case alignment. Narrower eligibility — contextual specialists surface.</div>
+      </div>
+      <div class="context-card">
+        <span class="context-card-type">Identity-Led Query</span>
+        <span class="context-card-prompt">"Best mattress for athletes who train daily"</span>
+        <span class="context-card-output-label">Recommendation environment</span>
+        <div class="context-card-output">Brands with lifestyle and performance associations. Eligibility tied to identity and use-case framing rather than general category presence.</div>
+      </div>
+    </div>
+
+    <p>This pattern appeared in both the <a href="/research/mattress.html">Mattress Experiment</a> and <a href="/research/protein-powder.html">Protein Powder Experiment</a>, where different query contexts produced different recommendation pools within the same category.</p>
+
+    <h2>SEO still matters — but its role may be evolving</h2>
+
+    <p>Traditional SEO remains critical for discoverability, indexing, authority building, and ecosystem visibility. AI systems still rely heavily on web content, structured data, and authority signals.</p>
+
+    <p>However, recommendation systems may additionally require contextual clarity, buyer-language reinforcement, and ecosystem positioning beyond owned properties. The relationship between SEO and recommendation eligibility is not competitive — it is cumulative.</p>
+
+    <p>Strong SEO helps brands become discoverable and indexable. Recommendation eligibility may help brands become consistently included within AI-generated recommendation environments. As Google notes with <a href="https://developers.google.com/search/blog/2025/05/succeeding-in-ai-search" target="_blank" rel="noopener noreferrer">AI Overviews</a>, AI experiences show a wider range of sources than traditional search results — creating new opportunities for brands with strong contextual positioning.</p>
+
+    <div class="key-insight">
+      <span class="key-insight-label">Critical Nuance</span>
+      <p>SEO and recommendation eligibility are not mutually exclusive. Both contribute to different layers of digital visibility — and both are likely important as AI-assisted discovery continues to grow.</p>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <h2>The Emerging Visibility Stack</h2>
+
+    <p>Traditional SEO built the foundation. Recommendation eligibility sits above it — an additional layer that depends on everything below, but requires its own distinct work.</p>
+
+    <!-- VISIBILITY STACK -->
+    <div class="stack-section scroll-fade">
+      <div class="stack-track">
+        <div class="stack-step">
+          <span class="stack-step-num">01</span>
+          <div class="stack-step-title">Traditional SEO</div>
+          <div class="stack-step-body">Rankings, indexing, and authority. The foundation of digital discoverability.</div>
+        </div>
+        <div class="stack-connector">
+          <svg width="12" height="32" viewBox="0 0 12 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="6" y1="0" x2="6" y2="24" stroke="rgba(0,255,148,0.25)" stroke-width="1.5"/>
+            <polyline points="1,18 6,28 11,18" fill="none" stroke="rgba(0,255,148,0.25)" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="stack-step">
+          <span class="stack-step-num">02</span>
+          <div class="stack-step-title">Brand Authority</div>
+          <div class="stack-step-body">Trust, third-party validation, and ecosystem presence.</div>
+        </div>
+        <div class="stack-connector">
+          <svg width="12" height="32" viewBox="0 0 12 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="6" y1="0" x2="6" y2="24" stroke="rgba(0,255,148,0.3)" stroke-width="1.5"/>
+            <polyline points="1,18 6,28 11,18" fill="none" stroke="rgba(0,255,148,0.3)" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="stack-step">
+          <span class="stack-step-num">03</span>
+          <div class="stack-step-title">Context Reinforcement</div>
+          <div class="stack-step-body">Category clarity and buyer-language alignment across the digital ecosystem.</div>
+        </div>
+        <div class="stack-connector">
+          <svg width="12" height="32" viewBox="0 0 12 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="6" y1="0" x2="6" y2="24" stroke="rgba(0,255,148,0.4)" stroke-width="1.5"/>
+            <polyline points="1,18 6,28 11,18" fill="none" stroke="rgba(0,255,148,0.4)" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="stack-step highlight">
+          <span class="stack-step-num">04</span>
+          <div class="stack-step-title">Recommendation Eligibility</div>
+          <div class="stack-step-body">Contextual inclusion confidence across buyer scenarios.</div>
+        </div>
+        <div class="stack-connector">
+          <svg width="12" height="32" viewBox="0 0 12 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="6" y1="0" x2="6" y2="24" stroke="rgba(0,255,148,0.55)" stroke-width="1.5"/>
+            <polyline points="1,18 6,28 11,18" fill="none" stroke="rgba(0,255,148,0.55)" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="stack-step top">
+          <span class="stack-step-num">05</span>
+          <div class="stack-step-title">AI Inclusion</div>
+          <div class="stack-step-body">The brand is consistently surfaced across AI-generated recommendation environments.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- CORE TAKEAWAYS -->
+    <div class="takeaways-section scroll-fade">
+      <span class="framework-label">Core Takeaways</span>
+      <div class="takeaways-row-top">
+        <div class="takeaway-card">
+          <span class="takeaway-num">01</span>
+          <div class="takeaway-title">Rankings and recommendation inclusion are different outcomes</div>
+          <div class="takeaway-body">Appearing in Google search results and being included in AI recommendations require different types of visibility work.</div>
+        </div>
+        <div class="takeaway-card">
+          <span class="takeaway-num">02</span>
+          <div class="takeaway-title">Recommendation visibility appears contextual</div>
+          <div class="takeaway-body">A brand may be included in broad recommendation environments but absent from constrained ones — or vice versa.</div>
+        </div>
+        <div class="takeaway-card">
+          <span class="takeaway-num">03</span>
+          <div class="takeaway-title">Search visibility does not guarantee AI inclusion</div>
+          <div class="takeaway-body">High Google rankings and strong awareness do not automatically translate into consistent AI recommendation presence.</div>
+        </div>
+      </div>
+      <div class="takeaways-row-bottom">
+        <div class="takeaway-card">
+          <span class="takeaway-num">04</span>
+          <div class="takeaway-title">SEO remains important</div>
+          <div class="takeaway-body">Traditional SEO builds the foundation. AI systems still rely on web content, structured data, and authority signals. Both matter.</div>
+        </div>
+        <div class="takeaway-card">
+          <span class="takeaway-num">05</span>
+          <div class="takeaway-title">Recommendation Eligibility may become a new visibility layer</div>
+          <div class="takeaway-body">As AI-assisted discovery grows, brands may need to track inclusion, consistency, and contextual fit alongside traditional SEO metrics.</div>
+        </div>
+      </div>
+    </div>
+
+    <h2>What ecommerce brands should focus on</h2>
+
+    <p>For brands navigating this evolving landscape, several priorities appear increasingly important.</p>
+
+    <!-- STRATEGY CARDS: 6 IN 3x2 -->
+    <div class="numbered-grid-6 scroll-fade">
+      <div class="numbered-card">
+        <span class="numbered-card-num">01</span>
+        <div class="numbered-card-title">Category Clarity</div>
+        <div class="numbered-card-body">Ensure the brand is consistently associated with specific categories, use cases, and buyer problems. Ambiguous positioning weakens eligibility.</div>
+      </div>
+      <div class="numbered-card">
+        <span class="numbered-card-num">02</span>
+        <div class="numbered-card-title">Recommendation Framing</div>
+        <div class="numbered-card-body">Think beyond search keywords. Consider how the brand is discussed in recommendation contexts — reviews, comparisons, forums, and buyer discussions.</div>
+      </div>
+      <div class="numbered-card">
+        <span class="numbered-card-num">03</span>
+        <div class="numbered-card-title">Ecosystem Reinforcement</div>
+        <div class="numbered-card-body">Build consistent third-party validation across multiple environments. As discussed in <a href="/research-notes/category-anchors-why-ai-repeatedly-recommends-certain-brands.html">Category Anchors</a>, repeated reinforcement contributes to stronger inclusion.</div>
+      </div>
+      <div class="numbered-card">
+        <span class="numbered-card-num">04</span>
+        <div class="numbered-card-title">Contextual Positioning</div>
+        <div class="numbered-card-body">Develop clear associations within specific recommendation roles — beginner-friendly, clean-label, performance-oriented — rather than all roles at once.</div>
+      </div>
+      <div class="numbered-card">
+        <span class="numbered-card-num">05</span>
+        <div class="numbered-card-title">Buyer-Language Alignment</div>
+        <div class="numbered-card-body">Use the language consumers themselves use when searching, comparing, and evaluating products — including problem-oriented and outcome-based language.</div>
+      </div>
+      <div class="numbered-card">
+        <span class="numbered-card-num">06</span>
+        <div class="numbered-card-title">Problem-Specific Positioning</div>
+        <div class="numbered-card-body">Align with buyer problems and use cases. As seen in <a href="/research-notes/why-some-famous-brands-rarely-appear-in-ai-answers.html">Why Some Famous Brands Rarely Appear</a>, contextual relevance may matter more than popularity.</div>
+      </div>
+    </div>
+
+    <h2>From searchable to recommendable</h2>
+
+    <p>Traditional SEO helped brands become searchable. AI recommendation environments may increasingly determine whether brands become <strong>recommendable</strong>.</p>
+
+    <p>Recommendation eligibility is not a replacement for SEO — it is an additional layer. Brands that invest in both traditional search visibility and recommendation eligibility may be better positioned as AI-assisted discovery continues to grow.</p>
+
+    <p>The goal is to build a visibility stack that works across both environments. SEO helps brands become searchable. Recommendation eligibility helps brands become recommendable. Both matter.</p>
+
+  </article>
+</div>
+
+<!-- SOURCES -->
+<section class="sources-section">
+  <div class="container">
+    <span class="sources-label">Sources Referenced</span>
+    <div class="sources-list">
+      <p class="source-item">Google Search Central, <em><a href="https://developers.google.com/search/docs/fundamentals/how-search-works" target="_blank" rel="noopener noreferrer">How Google Search Works</a></em>, 2025.</p>
+      <p class="source-item">Google Search Central, <em><a href="https://developers.google.com/search/blog/2025/05/succeeding-in-ai-search" target="_blank" rel="noopener noreferrer">Top ways to ensure your content performs well in Google's AI experiences on Search</a></em>, May 2025.</p>
+      <p class="source-item">Capgemini Research Institute, <em><a href="https://www.capgemini.com/insights/research-library/what-matters-to-todays-consumer-2025/" target="_blank" rel="noopener noreferrer">What Matters to Today's Consumer 2025</a></em>, 2025.</p>
+      <p class="source-item">Adobe, <em><a href="https://business.adobe.com/blog/generative-ai-powered-shopping-rises-with-traffic-to-retail-sites" target="_blank" rel="noopener noreferrer">Generative AI-Powered Shopping Rises with Traffic to U.S. Retail Sites</a></em>, 2025.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RELATED -->
+<section class="related-section">
+  <div class="container">
+    <span class="related-label">Related Research</span>
+    <div class="related-grid">
+      <a href="/research-notes/how-ai-recommendation-systems-choose-brands.html" class="related-card">
+        <span class="related-card-label">Research Note</span>
+        <h3>How AI Recommendation Systems Choose Brands</h3>
+      </a>
+      <a href="/research-notes/category-anchors-why-ai-repeatedly-recommends-certain-brands.html" class="related-card">
+        <span class="related-card-label">Research Note</span>
+        <h3>Category Anchors: Why AI Repeatedly Recommends Certain Brands</h3>
+      </a>
+      <a href="/research/beauty.html" class="related-card">
+        <span class="related-card-label">Experiment</span>
+        <h3>Beauty: Strong Brands Missing from Most AI Responses</h3>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p class="foot-logo">Pick<em>Me</em>Labs</p>
+    <ul class="foot-links">
+      <li><a href="/#how">How AI Chooses Brands</a></li>
+      <li><a href="/#offer">Visibility Experiment</a></li>
+      <li><a href="/research.html">Research</a></li>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ul>
+    <p class="foot-copy">© 2026 PickMeLabs</p>
+  </div>
+</footer>
+
+<!-- PAGE TRANSITION -->
+<div class="page-transition" id="pageTransition"></div>
+
+<script>
+  const pageTransition = document.getElementById('pageTransition');
+  window.addEventListener('pageshow', () => pageTransition.classList.remove('active'));
+
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const mobileClose = document.getElementById('mobileClose');
+  function closeMenu() { hamburger.classList.remove('open'); mobileMenu.classList.remove('open'); document.body.style.overflow = ''; }
+  hamburger.addEventListener('click', () => { hamburger.classList.toggle('open'); mobileMenu.classList.toggle('open'); document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : ''; });
+  mobileClose.addEventListener('click', closeMenu);
+  document.querySelectorAll('.mobile-link').forEach(link => link.addEventListener('click', closeMenu));
+
+  document.querySelectorAll('a').forEach(link => {
+    const href = link.getAttribute('href');
+    if (href && !href.startsWith('#') && !href.startsWith('mailto') && !href.startsWith('http')) {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        pageTransition.classList.add('active');
+        if (href.startsWith('/#')) { sessionStorage.setItem('scrollTo', href.substring(1)); setTimeout(() => { window.location.href = '/'; }, 80); }
+        else { setTimeout(() => { window.location.href = href; }, 80); }
+      });
+    }
+  });
+
+  // PARTICLES
+  const canvas = document.getElementById('heroCanvas');
+  if (canvas) {
+    canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;z-index:0;mask-image:linear-gradient(to bottom, black 50%, transparent 100%);-webkit-mask-image:linear-gradient(to bottom, black 50%, transparent 100%);';
+    const ctx = canvas.getContext('2d');
+    function resizeCanvas() { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    const isMobile = window.innerWidth < 820;
+    const speedMultiplier = isMobile ? 0.5 : 1;
+    const particles = Array.from({length: isMobile ? 35 : 70}, () => ({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.3) * 0.35 * speedMultiplier, vy: (Math.random() - 0.3) * 0.35 * speedMultiplier, r: Math.random() * 1.2 + 0.4, a: Math.random() * 0.45 + 0.1 }));
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2, cy = canvas.height / 2, exW = canvas.width * 0.55, exH = canvas.height * 0.5;
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        const dx = p.x - cx, dy = p.y - cy;
+        if (Math.abs(dx) < exW / 2 && Math.abs(dy) < exH / 2) {
+          const pushX = dx < 0 ? -1 : 1, pushY = dy < 0 ? -1 : 1;
+          p.vx += pushX * ((exW/2 - Math.abs(dx)) / (exW/2)) * 0.03;
+          p.vy += pushY * ((exH/2 - Math.abs(dy)) / (exH/2)) * 0.03;
+          const speed = Math.sqrt(p.vx*p.vx + p.vy*p.vy);
+          if (speed > 0.7) { p.vx = (p.vx/speed)*0.7; p.vy = (p.vy/speed)*0.7; }
+        }
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(0,255,148,' + p.a + ')'; ctx.fill();
+      });
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i+1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
+          const d = Math.sqrt(dx*dx + dy*dy);
+          if (d < 90) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.strokeStyle = 'rgba(0,255,148,' + (0.07*(1-d/90)) + ')'; ctx.lineWidth = 0.5; ctx.stroke(); }
+        }
+      }
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+  }
+
+  // SCROLL FADE
+  const fadeObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('in-view'); fadeObserver.unobserve(entry.target); } });
+  }, { threshold: 0, rootMargin: '0px 0px -60px 0px' });
+
+  document.querySelectorAll('article > p, article > h2, article > h3, article > div, article > ul, .sources-section, .related-section').forEach(el => {
+    if (!el.classList.contains('scroll-fade')) el.classList.add('scroll-fade');
+    fadeObserver.observe(el);
+  });
+</script>
+
+</body>
+</html>

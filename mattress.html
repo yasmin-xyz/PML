@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mattresses AI Experiment: Location Changes Which Brands Appear | PickMeLabs</title>
+  <meta name="description" content="We tested how AI recommends mattresses across different locations. The same query returned different brands depending on context. See the full experiment." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black: #080808;
+      --green: #00FF94;
+      --green-dim: rgba(0,255,148,0.1);
+      --green-border: rgba(0,255,148,0.18);
+      --white: #F0EFE9;
+      --muted: rgba(240,239,233,0.72);
+      --border: rgba(240,239,233,0.08);
+      --card: rgba(240,239,233,0.03);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--white); font-family: 'Space Grotesk', sans-serif; line-height: 1.6; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 40px; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 22px 0; background: rgba(8,8,8,0.96); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+    nav .container { display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 10px; }
+    .nav-logo em { color: var(--green); font-style: normal; }
+    .nav-logo-icon { width: 22px; height: 22px; flex-shrink: 0; }
+    .nav-links { list-style: none; display: flex; align-items: center; gap: 22px; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: colour 0.2s; }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta { background: var(--green) !important; color: var(--black) !important; padding: 8px 20px; border-radius: 4px; font-weight: 600 !important; font-size: 13px !important; }
+    .nav-cta:hover { opacity: 0.85 !important; }
+
+    /* NAV DROPDOWN */
+    .nav-dropdown { position: relative; }
+    .nav-dropdown > a { display: flex; align-items: center; gap: 5px; }
+    .nav-dropdown > a::after { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform 0.2s; }
+    .nav-dropdown:hover > a::after { transform: rotate(-135deg) translateY(-2px); }
+    .dropdown-menu { position: absolute; top: calc(100% + 14px); left: 50%; transform: translateX(-50%); background: rgba(12,12,12,0.98); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 10px; padding: 8px; min-width: 220px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease; transform: translateX(-50%) translateY(-6px); z-index: 200; }
+    .nav-dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    .dropdown-menu a { display: block; padding: 10px 14px; border-radius: 6px; font-size: 13px; color: var(--muted) !important; transition: background 0.15s, colour 0.15s !important; white-space: nowrap; }
+    .dropdown-menu a:hover { background: var(--green-dim); color: var(--white) !important; }
+    .dropdown-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(240,239,233,0.2); padding: 8px 14px 4px; display: block; }
+    .dropdown-divider { height: 1px; background: var(--border); margin: 6px 8px; }
+
+    /* HAMBURGER */
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 4px; cursor: pointer; z-index: 200; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--white); border-radius: 2px; transition: transform 0.3s ease, opacity 0.3s ease; }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    .mobile-menu { position: fixed; inset: 0; background: rgba(8,8,8,0.98); backdrop-filter: blur(20px); z-index: 150; flex-direction: column; align-items: center; justify-content: center; gap: 8px; opacity: 0; visibility: hidden; display: flex; transition: opacity 0.3s ease, visibility 0.3s ease; }
+    .mobile-menu.open { opacity: 1; visibility: visible; }
+    .mobile-menu a { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; color: var(--muted); text-decoration: none; letter-spacing: -0.02em; padding: 12px 0; transition: colour 0.2s; }
+    .mobile-menu a:hover { color: var(--white); }
+    .mobile-menu .mobile-cta { margin-top: 24px; background: var(--green); color: var(--black); font-size: 16px; font-weight: 700; padding: 14px 36px; border-radius: 4px; }
+    .mobile-close { position: absolute; top: 24px; right: 24px; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 8px; transition: colour 0.2s; }
+    .mobile-close:hover { color: var(--white); }
+
+    /* PAGE HERO */
+    .page-hero { padding: 160px 0 80px; position: relative; overflow: hidden; border-bottom: 1px solid var(--border); }
+    .page-hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; mask-image: linear-gradient(to bottom, black 50%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
+    .hero-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 900px; height: 700px; background: radial-gradient(ellipse, rgba(0,255,148,0.04) 0%, transparent 65%); pointer-events: none; z-index: 0; }
+    .page-hero-inner { position: relative; z-index: 1; }
+
+    .label { display: block; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--green); margin-bottom: 18px; }
+    .divider { height: 1px; background: var(--border); }
+
+    .fade-1 { opacity: 0; animation: fadeUp 0.6s ease forwards 0.1s; }
+    .fade-2 { opacity: 0; animation: fadeUp 0.6s ease forwards 0.25s; }
+    .fade-3 { opacity: 0; animation: fadeUp 0.6s ease forwards 0.4s; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+    .content-section { padding: 80px 0; }
+    .content-section + .content-section { border-top: 1px solid var(--border); }
+
+    h1 { font-size: clamp(32px, 4.5vw, 52px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.07; margin-bottom: 24px; }
+    h2 { font-size: clamp(22px, 2.8vw, 32px); font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; margin-bottom: 18px; }
+    h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 12px; }
+
+  .lead {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  color: rgba(240,239,233,0.82);
+  line-height: 1.85; margin-bottom: 20px; max-width: 820px; }
+    .body-text { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--muted); line-height: 1.8; margin-bottom: 16px; }
+    .body-text strong { color: var(--white); font-weight: 600; }
+
+    .meta-pills { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 40px; }
+    .pill { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); border-radius: 100px; padding: 6px 14px; }
+    .pill span { color: var(--green); }
+
+    .finding-box { border: 1px solid var(--green-border); border-radius: 12px; background: linear-gradient(150deg, rgba(0,255,148,0.05) 0%, transparent 55%); padding: 40px 48px; margin-bottom: 48px; }
+    .finding-box .finding-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--green); margin-bottom: 14px; display: block; }
+    .finding-box p { font-family: 'Inter', sans-serif; font-size: 17px; color: var(--white); line-height: 1.75; }
+
+    .pattern-grid { display: flex; flex-direction: column; gap: 24px; margin-top: 40px; }
+    .pattern-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 32px 36px; position: relative; overflow: hidden; transition: border-color 0.25s, background 0.25s; }
+    .pattern-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--green); transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease; }
+    .pattern-card:hover { border-color: var(--green-border); }
+    .pattern-card:hover::before { transform: scaleX(1); }
+    .pattern-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--green); opacity: 0.6; letter-spacing: 0.1em; margin-bottom: 10px; }
+    .pattern-card h3 { color: var(--white); margin-bottom: 12px; }
+    .pattern-card p { font-family: 'Inter', sans-serif; font-size: 14px; color: var(--muted); line-height: 1.7; }
+    .evidence-block { margin-top: 16px; padding: 14px 18px; background: rgba(0,255,148,0.04); border-left: 2px solid var(--green); border-radius: 0 6px 6px 0; }
+    .evidence-block p { font-family: 'DM Mono', monospace; font-size: 12px; color: rgba(240,239,233,0.6); line-height: 1.7; }
+
+    .model-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-top: 32px; }
+    .model-card { background: var(--card); padding: 28px 24px; grid-column: span 2; transition: background 0.2s, box-shadow 0.2s; }
+    
+    .model-card-wide { grid-column: span 3; }
+    .model-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--green); opacity: 0.6; margin-bottom: 10px; }
+    .model-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .model-card p { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    /* REGIONAL COMPARISON */
+    .region-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; }
+    .region-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 28px; }
+    .region-card .region-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); margin-bottom: 14px; display: block; }
+    .region-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+    .brand-list { list-style: none; }
+    .brand-list li { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+    .brand-list li:last-child { border-bottom: none; }
+    .brand-list li::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+
+    /* BRAND FREQUENCY */
+    .chart-wrap { margin-top: 40px; }
+    .chart-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+    .brand-row { display: grid; align-items: center; gap: 12px; margin-bottom: 14px; grid-template-columns: 200px 1fr 40px; }
+    .brand-name { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--white); text-align: right; }
+    .brand-bar-wrap { background: rgba(240,239,233,0.06); border-radius: 4px; height: 28px; overflow: hidden; }
+    .brand-bar { height: 100%; background: var(--green); border-radius: 4px; width: 0; transition: width 1s cubic-bezier(0.16,1,0.3,1); display: flex; align-items: center; padding: 0 10px; }
+    .brand-count { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--black); font-weight: 600; }
+    .brand-total { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+
+    /* CONTRAST BOX */
+    .contrast-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; }
+    .contrast-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 28px; }
+    .contrast-card .c-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); margin-bottom: 12px; display: block; }
+    .contrast-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+    .contrast-card p { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+    .implication-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; }
+    .implication-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; }
+    .implication-card .i-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); margin-bottom: 10px; display: block; }
+    .implication-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .implication-card p { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+    .scroll-fade { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .scroll-fade.in-view { opacity: 1; transform: translateY(0); }
+
+    /* CONTACT FORM */
+    .contact-form { margin-top: 40px; max-width: 640px; margin-left: auto; margin-right: auto; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .form-group label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: left; }
+    .form-group input, .form-group textarea { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; font-family: 'Inter', sans-serif; font-size: 15px; color: var(--white); outline: none; transition: border-color 0.2s; resize: none; }
+    .form-group input::placeholder, .form-group textarea::placeholder { color: var(--muted); }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--green); }
+    .contact-form .btn { width: 100%; text-align: center; margin-top: 8px; border: none; cursor: pointer; font-family: 'Space Grotesk', sans-serif; }
+
+    .cta-section { padding: 96px 0; text-align: center; border-top: 1px solid var(--border); }
+    .cta-section h2 { margin-bottom: 16px; }
+    .cta-section p { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--muted); line-height: 1.75; max-width: 640px; margin: 0 auto 40px; }
+    .btn { display: inline-block; background: var(--green); color: var(--black); font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 14px; padding: 14px 30px; border-radius: 4px; text-decoration: none; transition: opacity 0.2s, transform 0.15s; }
+    .btn:hover { opacity: 0.85; transform: translateY(-2px); }
+    .btn-outline { display: inline-block; background: transparent; color: var(--white); font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 14px; padding: 13px 29px; border-radius: 4px; border: 1px solid var(--border); text-decoration: none; transition: border-color 0.2s, colour 0.2s, transform 0.15s; margin-left: 12px; }
+    .btn-outline:hover { border-color: var(--green); color: var(--green); transform: translateY(-2px); }
+
+    footer { border-top: 1px solid var(--border); padding: 32px 0; }
+    footer .container { display: flex; align-items: center; justify-content: space-between; }
+    .foot-logo { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); }
+    .foot-logo em { color: var(--green); font-style: normal; }
+    .foot-links { list-style: none; display: flex; gap: 28px; }
+    .foot-links a { font-size: 13px; color: var(--muted); text-decoration: none; font-weight: 500; transition: colour 0.2s; }
+    .foot-links a:hover { color: var(--white); }
+    .foot-copy { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(240,239,233,0.2); }
+
+
+    .page-transition { position: fixed; inset: 0; background: var(--black); z-index: 99998; opacity: 0; pointer-events: none; transition: opacity 0.08s ease; }
+    .page-transition.active { opacity: 1; pointer-events: all; }
+
+.experiment-design-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.experiment-design-grid .model-card {
+  grid-column: auto;
+}
+
+    @media (max-width: 820px) {
+      .container { padding: 0 24px; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .page-hero { padding: 120px 0 60px; }
+      .model-grid { grid-template-columns: 1fr; }
+      .model-card { grid-column: span 1; }
+      .model-card-wide { grid-column: span 1; }
+      .region-grid { grid-template-columns: 1fr; }
+      .contrast-grid { grid-template-columns: 1fr; }
+      .implication-grid { grid-template-columns: 1fr; }
+      .brand-row { grid-template-columns: 140px 1fr 36px; }
+      .finding-box { padding: 28px 24px; }
+      footer .container { flex-direction: column; gap: 18px; text-align: center; }
+      .form-row { grid-template-columns: 1fr; }
+      .foot-links { flex-wrap: wrap; justify-content: center; }
+    }
+  .experiment-design-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.experiment-design-grid .model-card {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 26px 24px;
+  background: var(--card);
+}
+
+.experiment-design-grid .model-card p {
+  font-size: 15px;
+  line-height: 1.75;
+}
+    /* CARD SPOTLIGHT */
+    .model-card, .pattern-card {
+      --sx: 50%; --sy: 50%;
+    }
+    .model-card::after, .pattern-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle 260px at var(--sx) var(--sy), rgba(0,255,148,0.07) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      border-radius: inherit;
+    }
+    .model-card:hover::after, .pattern-card:hover::after { opacity: 1; }
+    .model-card { position: relative; overflow: hidden; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <a href="/" class="nav-logo">
+      <svg class="nav-logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polygon points="15,15 82,42 50,55 38,88" fill="#00FF94"/></svg><span>Pick<em>Me</em>Labs</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/#how">How AI Chooses Brands</a></li>
+      <li><a href="/#offer">Visibility Experiment</a></li>
+      <li class="nav-dropdown">
+        <a href="/research.html">Research</a>
+ <div class="dropdown-menu">
+  <span class="dropdown-label">Start Here</span>
+
+  <a href="/research.html">Research Library</a>
+  <a href="/concepts.html">Concept System</a>
+  <a href="/methodology.html">Methodology</a>
+
+  <div class="dropdown-divider"></div>
+
+  <span class="dropdown-label">Experiments</span>
+
+  <a href="/research/protein-powder.html">Protein Powder Experiment</a>
+  <a href="/research/mattress.html">Mattress Experiment</a>
+  <a href="/research/beauty.html">Beauty Experiment</a>
+
+  <div class="dropdown-divider"></div>
+
+  <a href="/#lab">View all experiments →</a>
+</div>
+      </li>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="#contact" class="nav-cta">Get in Touch</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose" aria-label="Close menu">✕</button>
+<a href="/#how" class="mobile-link">How AI Chooses Brands</a>
+<a href="/#offer" class="mobile-link">Visibility Experiment</a>
+<a href="/research.html" class="mobile-link">Research Library</a>
+<a href="/#lab" class="mobile-link">Published Experiments</a>
+<a href="/about.html" class="mobile-link">About</a>
+<a href="/#contact" class="mobile-cta mobile-link">Get in Touch</a>
+</div>
+<!-- PAGE HERO -->
+<section class="page-hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-glow"></div>
+  <div class="container page-hero-inner">
+    <div class="meta-pills fade-1">
+      <span class="pill">Category: <span>Home &amp; Sleep</span></span>
+      <span class="pill">AI Surface: <span>ChatGPT</span></span>
+      <span class="pill">Date: <span>Feb 19–20, 2026</span></span>
+      <span class="pill">Regions: <span>North America + Thailand</span></span>
+      <span class="pill">Query set: <span>5 broad + constrained queries</span></span>
+      <span class="pill">Variable tested: <span>Regional context + query framing</span></span>
+    </div>
+    <h1 class="fade-2">Mattresses: Location Changes Which Brands AI Recommends</h1>
+    <p class="lead fade-3">We tested how AI systems recommend mattress brands across a set of buyer-style queries, running the same queries from different locations. The goal was to observe how context affects which brands are included in responses.</p>
+    <p class="lead fade-3" style="margin-top: 16px;">Across the queries we ran, the same question often returned different brands depending on location. This suggests that AI recommendations are influenced by contextual factors — and that visibility is not consistent across users.</p>
+  </div>
+</section>
+
+<!-- CORE FINDING -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">Core Finding</span>
+    <div class="finding-box scroll-fade" style="transition-delay:0.1s">
+      <span class="finding-label">In one sentence</span>
+      <p>In this sample, ChatGPT did not behave as if it were searching for one universal "best mattress." It appeared to sort brands into recommendation buckets shaped by region, price tier, and functional need — then select within those buckets.</p>
+    </div>
+    <p class="body-text scroll-fade" style="transition-delay:0.15s">That matters because it points to a different visibility model than lower-consideration categories. In mattresses, repeated appearance did not come from broad reputation alone. It appeared to come from whether a brand fit the right segment for the query being asked.</p>
+  </div>
+</section>
+
+<!-- EXPERIMENT DESIGN -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">Experiment Design</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s">How we ran the experiment</h2>
+    <p class="body-text scroll-fade" style="transition-delay:0.15s">This was a small, directional experiment designed to observe recommendation behaviour, not to produce a definitive category ranking. The same set of mattress queries was tested across two regional contexts to see whether brand selection stayed stable or changed with geography.</p>
+  <div class="model-grid experiment-design-grid scroll-fade" style="transition-delay:0.2s;">
+    <div class="model-card">
+        <div class="model-num">01</div>
+        <h4>Query set</h4>
+        <p>Broad and constrained prompts, including "best mattress," "best mattress for side sleepers," "best affordable mattress," and other high-intent recommendation queries.</p>
+      </div>
+      <div class="model-card">
+        <div class="model-num">02</div>
+        <h4>Environment</h4>
+        <p>ChatGPT only, tested across two network environments: North America and Thailand. The focus was the model's first-pass recommendation behaviour, not search rankings or retailer results.</p>
+      </div>
+     <div class="model-card">
+        <div class="model-num">03</div>
+        <h4>Objective</h4>
+        <p>Understand whether AI defaults to the same brands across mattress queries, or whether visibility is filtered by region, price, and functional fit before selection occurs.</p>
+      </div>
+    </div>
+    <p class="body-text scroll-fade" style="transition-delay:0.25s; margin-top: 32px; font-style: italic; opacity: 0.8;">Because this page reflects a limited sample, the findings should be read as directional evidence of category logic, not as a universal rule for every mattress query.</p>
+  </div>
+</section>
+
+<!-- REGIONAL VARIATION -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">Regional Variation</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s">The same query surfaced different brands by region</h2>
+    <p class="body-text scroll-fade" style="transition-delay:0.15s">One of the clearest findings in this experiment was regional variation. Identical queries produced materially different brand sets depending on inferred geography, even when the overall recommendation structure remained similar.</p>
+
+    <div class="region-grid scroll-fade" style="transition-delay:0.2s">
+      <div class="region-card">
+        <span class="region-label">Thai IP context (THB pricing)</span>
+        <h4>Brands surfaced</h4>
+        <ul class="brand-list">
+          <li>Ashley Sleep Essentials</li>
+          <li>Novilla Hybrid</li>
+          <li>Sealy Dreamlife</li>
+          <li>Zinus Cooling Gel Hybrid</li>
+          <li>Siena Memory Foam</li>
+          <li>PlushBeds Cooling Gel</li>
+        </ul>
+      </div>
+      <div class="region-card">
+        <span class="region-label">North American network (USD pricing)</span>
+        <h4>Brands surfaced</h4>
+        <ul class="brand-list">
+          <li>Helix Midnight</li>
+          <li>Nectar Premier</li>
+          <li>Puffy Lux Hybrid</li>
+          <li>Saatva Classic</li>
+          <li>Tempur-Pedic Adapt</li>
+          <li>Purple Restore</li>
+        </ul>
+      </div>
+    </div>
+    <p class="body-text scroll-fade" style="transition-delay:0.25s; margin-top: 24px;">The brand pools changed, but the recommendation structure did not. In both regions, ChatGPT still organised answers around the same kinds of roles — general pick, value pick, cooling pick, pressure-relief pick, and so on. In this sample, geography appeared to influence which brands were eligible before the model chose among them.</p>
+  </div>
+</section>
+
+<!-- BRAND FREQUENCY -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">Brand Frequency</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s">No single brand dominated the category</h2>
+    <p class="body-text scroll-fade" style="transition-delay:0.15s">Unlike a commodity-style category where one default brand can reappear across most queries, mattress visibility in this sample was distributed. No single brand emerged as a universal winner across the query set.</p>
+
+    <div class="chart-wrap scroll-fade" style="transition-delay:0.2s">
+      <div class="chart-title">Top brands by query appearances (North America)</div>
+      <div class="brand-row">
+        <div class="brand-name">Helix Midnight</div>
+        <div class="brand-bar-wrap"><div class="brand-bar" data-width="40" style="background: var(--green);"><span class="brand-count">2/5</span></div></div>
+        <div class="brand-total">2</div>
+      </div>
+      <div class="brand-row">
+        <div class="brand-name">Nectar Premier</div>
+        <div class="brand-bar-wrap"><div class="brand-bar" data-width="40" style="background: rgba(0,255,148,0.7);"><span class="brand-count">2/5</span></div></div>
+        <div class="brand-total">2</div>
+      </div>
+      <div class="brand-row">
+        <div class="brand-name">Purple Restore</div>
+        <div class="brand-bar-wrap"><div class="brand-bar" data-width="40" style="background: rgba(0,255,148,0.7);"><span class="brand-count">2/5</span></div></div>
+        <div class="brand-total">2</div>
+      </div>
+      <div class="brand-row">
+        <div class="brand-name">Tempur-Pedic</div>
+        <div class="brand-bar-wrap"><div class="brand-bar" data-width="40" style="background: rgba(0,255,148,0.5);"><span class="brand-count">2/5</span></div></div>
+        <div class="brand-total">2</div>
+      </div>
+      <div class="brand-row">
+        <div class="brand-name">Siena Memory Foam</div>
+        <div class="brand-bar-wrap"><div class="brand-bar" data-width="40" style="background: rgba(0,255,148,0.5);"><span class="brand-count">2/5</span></div></div>
+        <div class="brand-total">2</div>
+      </div>
+      <div class="brand-row">
+        <div class="brand-name">All others</div>
+        <div class="brand-bar-wrap"><div class="brand-bar" data-width="20" style="background: rgba(0,255,148,0.3);"></div></div>
+        <div class="brand-total">1</div>
+      </div>
+    </div>
+
+    <p class="body-text scroll-fade" style="transition-delay:0.22s; margin-top: 24px; font-size: 14px; color: var(--muted);">In a fragmented, high-consideration category, even 2 out of 5 appearances can indicate a stable role. The key pattern here is not dominance — it is distributed eligibility.</p>
+
+    <p class="body-text scroll-fade" style="transition-delay:0.24s; margin-top: 20px;">That is an important difference from categories where one brand clearly anchors the recommendation set. In mattresses, repeated appearance seems to reflect contextual fit within a segment rather than broad category ownership.</p>
+
+    <p class="body-text scroll-fade" style="transition-delay:0.26s; margin-top: 20px;">Notably, several familiar brands did not appear in this sample at all, including Casper, Tuft &amp; Needle, and Leesa. Their absence does not imply weak products; it suggests they were not the model's most obvious fit for the prompts tested here.</p>
+  </div>
+</section>
+
+<!-- PATTERNS -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">Pattern Analysis</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s">What the sample suggests</h2>
+    <p class="body-text scroll-fade" style="transition-delay:0.15s">Across the tested queries and regions, four patterns appeared consistently. These are observed selection behaviours, not universal laws.</p>
+
+    <div class="pattern-grid">
+      <div class="pattern-card scroll-fade" style="transition-delay:0.1s">
+        <p class="pattern-num">Pattern 01</p>
+        <h3>AI organised results into segments, not a single winner</h3>
+        <p>Even broad mattress queries were rarely answered with one dominant brand. Instead, ChatGPT tended to structure recommendations into labelled categories such as "best overall," "budget," "cooling," "pressure relief," or "premium." In this sample, visibility was distributed across roles rather than concentrated around one consensus brand.</p>
+        <div class="evidence-block">
+          <p>Segmented answer structures appeared across both regional contexts, even when the specific brands inside those segments changed.</p>
+        </div>
+      </div>
+
+      <div class="pattern-card scroll-fade" style="transition-delay:0.15s">
+        <p class="pattern-num">Pattern 02</p>
+        <h3>Region appeared to act as an eligibility filter</h3>
+        <p>The same query produced meaningfully different brand sets across network contexts. What stayed stable was not the brand list, but the shape of the recommendation. This suggests that geography may influence which brands are considered first, before the model assembles the final ranked or segmented answer.</p>
+        <div class="evidence-block">
+          <p>For the same style of query, Thai-context responses surfaced Novilla, Zinus, and Sealy, while North American responses surfaced Helix, Nectar, Puffy, and Purple.</p>
+        </div>
+      </div>
+
+      <div class="pattern-card scroll-fade" style="transition-delay:0.2s">
+        <p class="pattern-num">Pattern 03</p>
+        <h3>Price and intent narrowed the candidate set</h3>
+        <p>Queries with a clear price or functional angle did not simply reorder the same brands; they often pulled in a different subset entirely. Affordable queries favoured lower-priced brands, while cooling, side-sleeper, or pain-related prompts favoured brands whose positioning or construction narrative more clearly matched that need.</p>
+        <div class="evidence-block">
+          <p>Budget-oriented recommendations and cooling-oriented recommendations showed little overlap, indicating that query framing materially changed which brands qualified.</p>
+        </div>
+      </div>
+
+      <div class="pattern-card scroll-fade" style="transition-delay:0.25s">
+        <p class="pattern-num">Pattern 04</p>
+        <h3>High-consideration categories resist consensus anchors</h3>
+        <p>In a category like mattresses — expensive, personal, and feature-heavy — ChatGPT did not appear eager to endorse one universal winner. The model behaved more like a sorter than a crowner, matching brands to roles instead of converging on a single default answer.</p>
+        <div class="evidence-block">
+          <p>Maximum observed frequency was 2/5 queries per brand, far below the kind of repeated dominance seen in simpler product categories.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STRUCTURAL MODEL -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">Structural Model</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s">A simpler model for mattress visibility</h2>
+    <p class="body-text scroll-fade" style="transition-delay:0.15s">This experiment suggests that mattress recommendations follow a layered eligibility model. Brand inclusion appeared conditional rather than automatic.</p>
+    <div class="model-grid scroll-fade" style="transition-delay:0.2s">
+      <div class="model-card model-card-wide">
+        <div class="model-num">01</div>
+        <h4>Regional fit</h4>
+        <p>Is the brand recognizable and relevant in the inferred geography?</p>
+      </div>
+      <div class="model-card model-card-wide">
+        <div class="model-num">02</div>
+        <h4>Segment fit</h4>
+        <p>Does the brand fit the expected bucket for the query — value, premium, cooling, pressure relief, and so on?</p>
+      </div>
+      <div class="model-card model-card-wide">
+        <div class="model-num">03</div>
+        <h4>Intent fit</h4>
+        <p>Does the brand's product narrative align with the specific problem the user is trying to solve?</p>
+      </div>
+      <div class="model-card model-card-wide">
+        <div class="model-num">04</div>
+        <h4>Final selection</h4>
+        <p>Only after those filters appear to narrow the pool does the model choose which brands to surface.</p>
+      </div>
+    </div>
+    <p class="body-text scroll-fade" style="transition-delay:0.25s; margin-top: 32px; font-size: 14px; color: var(--muted);">For brands, that means visibility may depend less on broad awareness alone and more on whether the model can place you clearly inside the right recommendation role.</p>
+  </div>
+</section>
+
+<!-- CROSS-CATEGORY CONTRAST -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">Cross-Category Contrast</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s">Why this category behaves differently</h2>
+    <p class="body-text scroll-fade" style="transition-delay:0.15s">This experiment becomes more useful when contrasted with simpler recommendation environments. In some categories, AI can rely on a stable default brand. In mattresses, the sample suggests it cannot do that as easily.</p>
+
+    <div class="contrast-grid scroll-fade" style="transition-delay:0.2s">
+      <div class="contrast-card">
+        <span class="c-label">Protein powder</span>
+        <h4>Broad queries can support a consensus anchor</h4>
+        <p>Broad queries can often support a consensus-style anchor brand. The recommendation task is narrower, more standardised, and easier to summarise.</p>
+      </div>
+      <div class="contrast-card">
+        <span class="c-label">Mattresses</span>
+        <h4>Broad queries still require segmentation</h4>
+        <p>Broad queries still require segmentation. Region, price, sleeping style, and construction features all shape the recommendation set, making a single universal winner less stable.</p>
+      </div>
+    </div>
+
+    <div class="finding-box scroll-fade" style="transition-delay:0.25s; margin-top: 32px; margin-bottom: 0;">
+      <span class="finding-label">The broader implication</span>
+      <p>The broader implication is that AI visibility strategy is category-specific. A brand cannot assume that what works in a lower-consideration or more standardised market will also work in a layered, high-consideration purchase category.</p>
+    </div>
+  </div>
+</section>
+
+<!-- IMPLICATIONS -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">Implications</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s">What this means for mattress brands</h2>
+    <div class="implication-grid scroll-fade" style="transition-delay:0.15s">
+      <div class="implication-card">
+        <span class="i-label">Role clarity</span>
+        <h4>Define the segment you want to own</h4>
+        <p>If AI organises recommendations into buckets, brands need a clear role inside that structure. Being vaguely "good for everyone" may be less effective than being strongly legible as a premium hybrid, cooling specialist, pressure-relief option, or best-value pick.</p>
+      </div>
+      <div class="implication-card">
+        <span class="i-label">Geographic visibility</span>
+        <h4>Regional presence affects inclusion</h4>
+        <p>A strong brand in one market may not be visible in another if its regional signals are weaker. Distribution, retailer presence, pricing context, and local brand familiarity may all influence whether the model treats the brand as eligible.</p>
+      </div>
+      <div class="implication-card">
+        <span class="i-label">Query-fit messaging</span>
+        <h4>Feature claims need to map cleanly to use cases</h4>
+        <p>If your brand wants to appear in "side sleeper," "cooling," or "back pain" prompts, your product language has to make that fit obvious. Ambiguous construction narratives create recommendation risk.</p>
+      </div>
+      <div class="implication-card">
+        <span class="i-label">Strategy implication</span>
+        <h4>Don't chase one universal ranking</h4>
+        <p>In this type of category, the goal may not be to become "the" AI-approved mattress. It may be to become one of the brands that reliably qualifies in the right high-intent contexts.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSING INSIGHT -->
+<section class="content-section">
+  <div class="container" style="max-width: 900px;">
+    <span class="label scroll-fade">Closing Observation</span>
+    <div class="finding-box scroll-fade" style="transition-delay:0.1s">
+      <span class="finding-label">The takeaway</span>
+      <p>In this sample, ChatGPT did not treat mattresses as a winner-take-all category. It appeared to distribute visibility across regionally and functionally appropriate segments, then select brands within those segments. For mattress brands, that suggests AI visibility is shaped by eligibility, fit, and role clarity — not reputation&nbsp;alone.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contact">
+  <div class="container">
+    <span class="label scroll-fade">Run Your Own Experiment</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s">Find out where your brand appears —<br>and where it gets filtered out</h2>
+    <p class="scroll-fade" style="transition-delay:0.15s">Every category has its own recommendation logic. We run controlled experiments to show which prompts include your brand, which competitors replace you, and what signals seem to shape AI selection.</p>
+    <form class="contact-form scroll-fade" action="https://formspree.io/f/xojpgapd" method="POST" style="transition-delay:0.2s">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" placeholder="Your name" required />
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="you@company.com" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="brand">Tell us about your brand</label>
+        <textarea id="brand" name="brand" rows="3" placeholder="Your category, size, what you sell..."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="message">Describe your visibility problem / what brought you here</label>
+        <textarea id="message" name="message" rows="4" placeholder="What are you noticing in AI recommendations?" required></textarea>
+      </div>
+      <button type="submit" class="btn">Run an Experiment →</button>
+    </form>
+    <div class="scroll-fade" style="transition-delay:0.25s; margin-top: 24px;">
+      <a href="/research/protein-powder.html" class="btn-outline">Read: Protein Powder Experiment →</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p class="foot-logo">Pick<em>Me</em>Labs</p>
+    <ul class="foot-links">
+      <li><a href="/#how">How AI Chooses Brands</a></li>
+      <li><a href="/#offer">Visibility Experiment</a></li>
+      <li><a href="/#lab">Research</a></li>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <p class="foot-copy">© 2026 PickMeLabs</p>
+  </div>
+</footer>
+
+<!-- PAGE TRANSITION -->
+<div class="page-transition" id="pageTransition"></div>
+
+<!-- CUSTOM CURSOR -->
+
+<script>
+  // PAGE TRANSITION
+  const pageTransition = document.getElementById('pageTransition');
+document.querySelectorAll('a').forEach(link => {
+  const href = link.getAttribute('href');
+  // Skip anchor links on the same page
+  if (href && !href.startsWith('#') && !href.startsWith('mailto') && !href.startsWith('http') && href !== '/#lab' && !href.match(/^\/#\w+$/)) {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      pageTransition.classList.add('active');
+      if (href.startsWith('/#')) {
+        sessionStorage.setItem('scrollTo', href.substring(1));
+        setTimeout(() => { window.location.href = '/'; }, 80);
+      } else {
+        setTimeout(() => { window.location.href = href; }, 80);
+      }
+    });
+  }
+});
+
+  // HAMBURGER
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const mobileClose = document.getElementById('mobileClose');
+  function closeMenu() { hamburger.classList.remove('open'); mobileMenu.classList.remove('open'); document.body.style.overflow = ''; }
+  hamburger.addEventListener('click', () => { hamburger.classList.toggle('open'); mobileMenu.classList.toggle('open'); document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : ''; });
+  mobileClose.addEventListener('click', closeMenu);
+  document.querySelectorAll('.mobile-link').forEach(link => link.addEventListener('click', closeMenu));
+
+  document.querySelectorAll('a, button').forEach(el => {
+  });
+
+  // PARTICLES
+  // PARTICLES WITH REPEL ZONE
+  const canvas = document.getElementById('heroCanvas');
+  const ctx = canvas.getContext('2d');
+  function resizeCanvas() { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  const particles = Array.from({length: 70}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: (Math.random() - 0.5) * 0.35,
+    vy: (Math.random() - 0.5) * 0.35,
+    r: Math.random() * 1.2 + 0.4,
+    a: Math.random() * 0.45 + 0.1
+  }));
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const exW = canvas.width * 0.60;
+    const exH = canvas.height * 0.55;
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      const inZoneX = Math.abs(dx) < exW / 2;
+      const inZoneY = Math.abs(dy) < exH / 2;
+      if (inZoneX && inZoneY) {
+        const pushX = dx < 0 ? -1 : 1;
+        const pushY = dy < 0 ? -1 : 1;
+        const distX = (exW / 2 - Math.abs(dx)) / (exW / 2);
+        const distY = (exH / 2 - Math.abs(dy)) / (exH / 2);
+        p.vx += pushX * distX * 0.03;
+        p.vy += pushY * distY * 0.03;
+        const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        if (speed > 0.7) { p.vx = (p.vx / speed) * 0.7; p.vy = (p.vy / speed) * 0.7; }
+      }
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,255,148,' + p.a + ')'; ctx.fill();
+    });
+    for (let i = 0; i < particles.length; i++) for (let j = i + 1; j < particles.length; j++) {
+      const d = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+      if (d < 90) {
+        ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = 'rgba(0,255,148,' + (0.07 * (1 - d / 90)) + ')';
+        ctx.lineWidth = 0.5; ctx.stroke();
+      }
+    }
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+
+  // SCROLL FADE + BAR ANIMATION
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+        observer.unobserve(entry.target);
+        entry.target.querySelectorAll('.brand-bar').forEach(bar => {
+          bar.style.width = bar.dataset.width + '%';
+        });
+      }
+    });
+  }, { threshold: 0 });
+  document.querySelectorAll('.scroll-fade').forEach(el => observer.observe(el));
+  document.querySelectorAll('.chart-wrap').forEach(el => observer.observe(el));
+
+  // CARD SPOTLIGHT
+  document.querySelectorAll('.model-card, .pattern-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--sx', (e.clientX - r.left) + 'px');
+      card.style.setProperty('--sy', (e.clientY - r.top) + 'px');
+    });
+  });
+</script>
+
+</body>
+</html>

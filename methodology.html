@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Methodology: How PickMeLabs Measures AI Visibility | PickMeLabs</title>
+  <meta name="description" content="Learn how PickMeLabs runs structured AI visibility experiments across buyer-style queries, AI systems, inclusion metrics, and competitor analysis." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black: #080808;
+      --green: #00FF94;
+      --green-dim: rgba(0,255,148,0.1);
+      --green-border: rgba(0,255,148,0.18);
+      --white: #F0EFE9;
+      --muted: rgba(240,239,233,0.72);
+      --border: rgba(240,239,233,0.08);
+      --card: rgba(240,239,233,0.03);
+      --card-mid: rgba(240,239,233,0.02);
+      --card-secondary: rgba(240,239,233,0.008);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Space Grotesk', sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 40px; }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100; padding: 22px 0;
+      background: rgba(8,8,8,0.96);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    nav .container { display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 10px; }
+    .nav-logo em { color: var(--green); font-style: normal; }
+    .nav-logo-icon { width: 22px; height: 22px; flex-shrink: 0; }
+    .nav-links { list-style: none; display: flex; align-items: center; gap: 22px; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta { background: var(--green) !important; color: var(--black) !important; padding: 8px 20px; border-radius: 4px; font-weight: 600 !important; font-size: 13px !important; }
+    .nav-cta:hover { opacity: 0.85 !important; }
+
+    /* NAV DROPDOWN */
+    .nav-dropdown { position: relative; }
+    .nav-dropdown > a { display: flex; align-items: center; gap: 5px; }
+    .nav-dropdown > a::after { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform 0.2s; }
+    .nav-dropdown:hover > a::after { transform: rotate(-135deg) translateY(-2px); }
+    .dropdown-menu { position: absolute; top: calc(100% + 14px); left: 50%; transform: translateX(-50%); background: rgba(12,12,12,0.98); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 10px; padding: 8px; min-width: 280px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease; transform: translateX(-50%) translateY(-6px); z-index: 200; }
+    .nav-dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    .dropdown-menu a { display: block; padding: 10px 14px; border-radius: 6px; font-size: 13px; color: var(--muted) !important; transition: background 0.15s, color 0.15s !important; white-space: nowrap; }
+    .dropdown-menu a:hover { background: var(--green-dim); color: var(--white) !important; }
+    .dropdown-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(240,239,233,0.2); padding: 8px 14px 4px; display: block; }
+    .dropdown-divider { height: 1px; background: var(--border); margin: 6px 8px; }
+
+    /* HAMBURGER */
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 4px; cursor: pointer; z-index: 200; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--white); border-radius: 2px; transition: transform 0.3s ease, opacity 0.3s ease; }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* MOBILE MENU */
+    .mobile-menu { position: fixed; inset: 0; background: rgba(8,8,8,0.98); backdrop-filter: blur(20px); z-index: 150; flex-direction: column; align-items: center; justify-content: center; gap: 8px; opacity: 0; visibility: hidden; display: flex; transition: opacity 0.3s ease, visibility 0.3s ease; }
+    .mobile-menu.open { opacity: 1; visibility: visible; }
+    .mobile-menu a { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; color: var(--muted); text-decoration: none; letter-spacing: -0.02em; padding: 12px 0; transition: color 0.2s; }
+    .mobile-menu a:hover { color: var(--white); }
+    .mobile-menu .mobile-cta { margin-top: 24px; background: var(--green); color: var(--black); font-size: 16px; font-weight: 700; padding: 14px 36px; border-radius: 4px; }
+    .mobile-close { position: absolute; top: 24px; right: 24px; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 8px; transition: color 0.2s; }
+    .mobile-close:hover { color: var(--white); }
+
+    /* PAGE HERO */
+    .page-hero { padding: 160px 0 80px; position: relative; overflow: hidden; border-bottom: 1px solid var(--border); }
+    .page-hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; mask-image: linear-gradient(to bottom, black 50%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
+    .hero-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 900px; height: 700px; background: radial-gradient(ellipse, rgba(0,255,148,0.02) 0%, transparent 65%); pointer-events: none; z-index: 0; }
+    .page-hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 920px;
+}
+
+    /* TYPOGRAPHY */
+    h1 { font-size: clamp(30px, 3.6vw, 44px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 28px; text-wrap: balance; }
+    h2 { font-size: clamp(22px, 2.8vw, 32px); font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; margin-bottom: 20px; text-wrap: normal; }
+    h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 12px; text-wrap: balance; }
+    h4 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+
+    .label { display: block; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--green); margin-bottom: 18px; }
+    
+.lead {
+  font-family: 'Inter', sans-serif;
+  font-size: 17px;
+  color: rgba(240,239,233,0.82);
+  line-height: 1.75;
+  margin-bottom: 20px;
+  max-width: 820px;
+}
+
+.body-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  color: var(--muted);
+  line-height: 1.85;
+  margin-bottom: 18px;
+  max-width: 820px;
+}
+    .body-text strong { color: var(--white); font-weight: 500; }
+
+    .divider { height: 1px; background: var(--border); }
+
+    /* HERO ANIMATIONS */
+    .fade-1 { opacity: 0; animation: fadeUp 0.6s ease forwards 0.1s; }
+    .fade-2 { opacity: 0; animation: fadeUp 0.6s ease forwards 0.25s; }
+    .fade-3 { opacity: 0; animation: fadeUp 0.6s ease forwards 0.4s; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* CONTENT SECTIONS */
+  .content-section {
+  padding: 80px 0;
+}
+
+.content-section .container {
+  max-width: 920px;
+}
+    .content-section + .content-section { border-top: 1px solid var(--border); }
+
+    /* CARD GRIDS */
+    .card-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 32px; }
+    .card-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; }
+    .card-grid-4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 32px; }
+
+    .meth-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px 32px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.25s, background 0.25s;
+    }
+    .meth-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--green); transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease; }
+    .meth-card:hover { border-color: var(--green-border); }
+    .meth-card:hover::before { transform: scaleX(1); }
+    .meth-card .card-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--green); opacity: 0.6; letter-spacing: 0.1em; margin-bottom: 10px; display: block; }
+    .meth-card h3 { color: var(--white); margin-bottom: 10px; }
+    .meth-card h4 { color: var(--white); margin-bottom: 8px; font-size: 15px; }
+    .meth-card p { font-family: 'Inter', sans-serif; font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 0; text-wrap: pretty; }
+    .meth-card p + p { margin-top: 12px; }
+    .meth-card .metric-sublabel + p { margin-top: 0; }
+    .meth-card .meta-line {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 12px;
+      display: block;
+    }
+    .meth-card .metric-sublabel {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(240,239,233,0.4);
+      display: block;
+      margin-top: 16px;
+      margin-bottom: 6px;
+    }
+    .meth-card .metric-sublabel:first-of-type { margin-top: 6px; }
+
+    /* PROCESS STEPS - stacked numbered cards */
+    .process-steps { display: flex; flex-direction: column; gap: 16px; margin-top: 32px; }
+    .process-step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px 32px;
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 24px;
+      align-items: start;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.25s;
+    }
+    .process-step::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 2px; background: var(--green); transform: scaleY(0); transform-origin: top; transition: transform 0.3s ease; }
+    .process-step:hover { border-color: var(--green-border); }
+    .process-step:hover::before { transform: scaleY(1); }
+    .step-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 24px;
+      color: var(--green);
+      font-weight: 400;
+      line-height: 1;
+      padding-top: 4px;
+    }
+    .step-body h3 { color: var(--white); margin-bottom: 10px; }
+    .step-body p { font-family: 'Inter', sans-serif; font-size: 14px; color: var(--muted); line-height: 1.75; margin-bottom: 0; text-wrap: pretty; }
+
+    /* SIGNAL LIST */
+    .signal-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 24px; }
+    .signal-item {
+      background: var(--card-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .signal-item .signal-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .signal-item span:last-child {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--white);
+    }
+
+    /* INCLUSION CARDS — slimmer support cards */
+    .inclusion-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 28px; }
+    .inclusion-card {
+      background: var(--card-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 24px;
+    }
+    .inclusion-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+    .inclusion-card p {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 0;
+    }
+
+    /* FINDING-STYLE NOTE BOX (limitations) */
+    .note-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--card-secondary);
+      padding: 28px 32px;
+      margin-top: 28px;
+    }
+    .note-box p {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+     color: rgba(240,239,233,0.72);
+      line-height: 1.8;
+      margin-bottom: 16px;
+      text-wrap: normal;
+    }
+    .note-box p:last-child { margin-bottom: 0; }
+    .note-box p strong { color: var(--white); font-weight: 500; }
+    .note-box p a { color: var(--white); text-decoration: none; border-bottom: 1px solid rgba(0,255,148,0.4); transition: color 0.2s, border-color 0.2s; }
+    .note-box p a:hover { color: var(--green); border-bottom-color: var(--green); }
+    .note-box p.note-box-sources {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      color: rgba(240,239,233,0.35);
+      line-height: 1.7;
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .note-box p.note-box-sources em { font-style: italic; color: rgba(240,239,233,0.45); }
+    .note-box p.note-box-sources a { color: rgba(240,239,233,0.55); border-bottom-color: rgba(240,239,233,0.2); }
+    .note-box p.note-box-sources a:hover { color: var(--green); border-bottom-color: var(--green); }
+
+    /* CONTACT FORM */
+    .contact-section { padding: 96px 0; border-top: 1px solid var(--border); text-align: center; }
+    .contact-section .intro { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--muted); line-height: 1.75; max-width: 720px; margin: 0 auto 40px; text-wrap: pretty; }
+    .contact-form { margin-top: 40px; max-width: 640px; margin-left: auto; margin-right: auto; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .form-group label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: left; }
+    .form-group input, .form-group textarea { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; font-family: 'Inter', sans-serif; font-size: 15px; color: var(--white); outline: none; transition: border-color 0.2s; resize: none; }
+    .form-group input::placeholder, .form-group textarea::placeholder { color: var(--muted); }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--green); }
+    .contact-form .btn { width: 100%; text-align: center; margin-top: 8px; border: none; cursor: pointer; font-family: 'Space Grotesk', sans-serif; }
+
+    /* CTA */
+    .cta-section { padding: 96px 0; text-align: center; border-top: 1px solid var(--border); }
+    .cta-section h2 { margin-bottom: 16px; }
+    .cta-section p { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--muted); line-height: 1.75; max-width: 720px; margin: 0 auto 40px; text-wrap: pretty; }
+    .btn { display: inline-block; background: var(--green); color: var(--black); font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 14px; padding: 14px 30px; border-radius: 4px; text-decoration: none; transition: opacity 0.2s, transform 0.15s; }
+    .btn:hover { opacity: 0.85; transform: translateY(-2px); }
+
+    /* FOOTER */
+    footer { border-top: 1px solid var(--border); padding: 32px 0; }
+    footer .container { display: flex; align-items: center; justify-content: space-between; }
+    .foot-logo { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); }
+    .foot-logo em { color: var(--green); font-style: normal; }
+    .foot-links { list-style: none; display: flex; gap: 28px; }
+    .foot-links a { font-size: 13px; color: var(--muted); text-decoration: none; font-weight: 500; transition: color 0.2s; }
+    .foot-links a:hover { color: var(--white); }
+    .foot-copy { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(240,239,233,0.2); }
+
+    /* SCROLL FADE */
+    .scroll-fade { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .scroll-fade.in-view { opacity: 1; transform: translateY(0); }
+
+    /* PAGE TRANSITION */
+    .page-transition { position: fixed; inset: 0; background: var(--black); z-index: 99998; opacity: 0; pointer-events: none; transition: opacity 0.08s ease; }
+    .page-transition.active { opacity: 1; pointer-events: all; }
+
+  @media (max-width: 820px) {
+  
+  .page-hero-inner {
+  max-width: 100%;
+}
+
+.page-hero .container {
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.page-hero h1 {
+  max-width: 100%;
+}
+
+.page-hero .lead {
+  max-width: 100%;
+}
+
+  .container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .page-hero {
+    padding: 120px 0 64px;
+  }
+
+  .lead {
+    font-size: 16px;
+    line-height: 1.75;
+  }
+
+  h1 {
+    font-size: clamp(33px, 10vw, 40px);
+    line-height: 1.12;
+  }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .page-hero { padding: 120px 0 60px; }
+      .card-grid-3, .card-grid-2, .card-grid-4 { grid-template-columns: 1fr; }
+      .inclusion-grid { grid-template-columns: 1fr; }
+      .signal-list { grid-template-columns: 1fr; }
+      .process-step { padding: 22px 24px; gap: 18px; grid-template-columns: 44px 1fr; }
+      .step-num { font-size: 20px; }
+      .meth-card { padding: 24px 26px; }
+      .note-box { padding: 22px 24px; }
+      .form-row { grid-template-columns: 1fr; }
+      footer .container { flex-direction: column; gap: 18px; text-align: center; }
+      .foot-links { flex-wrap: wrap; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <a href="/" class="nav-logo">
+      <svg class="nav-logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polygon points="15,15 82,42 50,55 38,88" fill="#00FF94"/></svg><span>Pick<em>Me</em>Labs</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/#how">How AI Chooses Brands</a></li>
+      <li><a href="/#offer">Visibility Experiment</a></li>
+      <li class="nav-dropdown">
+        <a href="/research.html">Research</a>
+ <div class="dropdown-menu">
+  <span class="dropdown-label">Start Here</span>
+
+  <a href="/research.html">Research Library</a>
+  <a href="/concepts.html">Concept System</a>
+  <a href="/methodology.html">Methodology</a>
+
+  <div class="dropdown-divider"></div>
+
+  <span class="dropdown-label">Experiments</span>
+
+  <a href="/research/protein-powder.html">Protein Powder Experiment</a>
+  <a href="/research/mattress.html">Mattress Experiment</a>
+  <a href="/research/beauty.html">Beauty Experiment</a>
+
+  <div class="dropdown-divider"></div>
+
+  <a href="/#lab">View all experiments →</a>
+</div>
+      </li>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="#contact" class="nav-cta">Get in Touch</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose" aria-label="Close menu">✕</button>
+<a href="/#how" class="mobile-link">How AI Chooses Brands</a>
+<a href="/#offer" class="mobile-link">Visibility Experiment</a>
+<a href="/research.html" class="mobile-link">Research Library</a>
+<a href="/#lab" class="mobile-link">Published Experiments</a>
+<a href="/about.html" class="mobile-link">About</a>
+<a href="/#contact" class="mobile-cta mobile-link">Get in Touch</a>
+</div>
+
+<!-- PAGE HERO -->
+<section class="page-hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-glow"></div>
+  <div class="container page-hero-inner">
+    <span class="label fade-1">The Methodology</span>
+    <h1 class="fade-2">How PickMeLabs measures AI visibility</h1>
+    <p class="lead fade-3">AI visibility is not measured by a single ranking. It depends on which brands are selected, which questions they appear in, and which competitors are shown instead.</p>
+    <p class="lead fade-3" style="margin-top: 8px;">PickMeLabs uses a structured experiment process to separate random AI output from repeatable visibility patterns.</p>
+  </div>
+</section>
+
+<!-- WHY METHODOLOGY MATTERS -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">Why This Matters</span>
+
+    <div class="note-box scroll-fade" style="transition-delay:0.08s; margin-top: 0; margin-bottom: 56px;">
+      <p>Generative AI is becoming part of how consumers decide what to buy — not just how they search.</p>
+      <p><a href="https://www.capgemini.com/insights/research-library/what-matters-to-todays-consumer-2025/" target="_blank" rel="noopener noreferrer">Capgemini Research Institute's 2025 consumer trends research</a> found that <strong>58% of consumers prefer product recommendations from generative AI tools over traditional search engines</strong>. <a href="https://business.adobe.com/blog/generative-ai-powered-shopping-rises-with-traffic-to-retail-sites" target="_blank" rel="noopener noreferrer">Adobe Digital Insights</a> also reported that <strong>generative AI-driven traffic to U.S. retail sites rose 4,700% year-over-year in July 2025</strong>.</p>
+      <p>For ecommerce teams, this means AI visibility is becoming part of the same discovery system as SEO, content, PR, and onsite experience.</p>
+      <p class="note-box-sources">Sources: Capgemini Research Institute, <em><a href="https://www.capgemini.com/insights/research-library/what-matters-to-todays-consumer-2025/" target="_blank" rel="noopener noreferrer">What Matters to Today's Consumer 2025</a></em>; Adobe Digital Insights, <em><a href="https://business.adobe.com/blog/generative-ai-powered-shopping-rises-with-traffic-to-retail-sites" target="_blank" rel="noopener noreferrer">Generative AI-Powered Shopping Rises with Traffic to Retail Sites</a></em>, 2025.</p>
+    </div>
+
+    <h2 class="scroll-fade" style="transition-delay:0.1s">AI answers are inconsistent by design</h2>
+    <p class="body-text scroll-fade" style="transition-delay:0.15s">The same brand can appear in one response and disappear in another. A broad query may surface one set of competitors, while a more specific query may surface an entirely different group.</p>
+    <p class="body-text scroll-fade" style="transition-delay:0.18s">That means a single prompt is not enough. To understand AI visibility, brands need a structured way to test multiple buyer questions, compare outputs, and identify patterns across systems.</p>
+  </div>
+</section>
+
+<!-- THE FRAMEWORK -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">The Framework</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s">What the experiment is designed to measure</h2>
+    <p class="body-text scroll-fade" style="transition-delay:0.15s">The framework focuses on three core questions: where you appear, where you don't, and what's driving the difference.</p>
+
+    <div class="card-grid-3 scroll-fade" style="transition-delay:0.2s">
+      <div class="meth-card">
+        <span class="card-num">01</span>
+        <h3>Where you appear</h3>
+        <p>We measure how often your brand is included across a structured set of buyer-style queries.</p>
+      </div>
+      <div class="meth-card">
+        <span class="card-num">02</span>
+        <h3>Where you are missing</h3>
+        <p>We identify the query types where competitors are selected and your brand is absent.</p>
+      </div>
+      <div class="meth-card">
+        <span class="card-num">03</span>
+        <h3>What appears to drive&nbsp;the&nbsp;gap</h3>
+        <p>We compare your brand against the brands being selected to identify differences in positioning, authority, language, and context fit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">Process</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s">How the experiment works</h2>
+    <p class="body-text scroll-fade" style="transition-delay:0.15s">Every experiment follows a consistent five-step process. The structure is the same across categories — what changes is the query set and the brands being tested.</p>
+
+    <div class="process-steps">
+      <div class="process-step scroll-fade" style="transition-delay:0.1s">
+        <span class="step-num">01</span>
+        <div class="step-body">
+          <h3>Define the category and competitors</h3>
+          <p>We start by defining the category, key competitors, and the types of buying decisions customers are likely to ask AI about. This keeps the experiment focused on commercially relevant visibility, not generic brand mentions.</p>
+        </div>
+      </div>
+      <div class="process-step scroll-fade" style="transition-delay:0.15s">
+        <span class="step-num">02</span>
+        <div class="step-body">
+          <h3>Build the query set</h3>
+          <p>We create a structured set of buyer-style queries across broad, constrained, and comparison-based intent. These are designed to reflect how a real customer might ask for recommendations before searching or visiting a website. Query sets are customised by category and are not reused as generic templates.</p>
+        </div>
+      </div>
+      <div class="process-step scroll-fade" style="transition-delay:0.2s">
+        <span class="step-num">03</span>
+        <div class="step-body">
+          <h3>Run queries across AI systems</h3>
+          <p>Queries are run across relevant AI systems such as ChatGPT, Claude, Gemini, and Perplexity depending on the category and scope. Results are captured in a consistent format so outputs can be compared across platforms.</p>
+        </div>
+      </div>
+      <div class="process-step scroll-fade" style="transition-delay:0.25s">
+        <span class="step-num">04</span>
+        <div class="step-body">
+          <h3>Measure inclusion patterns</h3>
+          <p>For each response, we track whether your brand appears, which competitors appear instead, and what role each brand plays in the answer. This helps separate meaningful recommendation from passing mention.</p>
+        </div>
+      </div>
+      <div class="process-step scroll-fade" style="transition-delay:0.3s">
+        <span class="step-num">05</span>
+        <div class="step-body">
+          <h3>Translate patterns into action</h3>
+          <p>The final analysis connects visibility gaps to practical changes across positioning, content, authority signals, and technical structure. The goal is not just to show where your brand is missing, but what can be improved.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT WE MEASURE -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">Core Metrics</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s">The metrics behind the report</h2>
+    <p class="body-text scroll-fade" style="transition-delay:0.15s">Three metrics anchor the analysis. Each one answers a different question about how your brand is being treated by AI recommendation systems.</p>
+
+    <div class="card-grid-3 scroll-fade" style="transition-delay:0.2s">
+      <div class="meth-card">
+        <span class="meta-line">Metric 01</span>
+        <h3>Inclusion Rate</h3>
+        <span class="metric-sublabel">Definition</span>
+        <p>How often your brand appears across the tested query set.</p>
+        <span class="metric-sublabel">Why it matters</span>
+        <p>This shows whether your brand is consistently being considered or only appearing occasionally.</p>
+      </div>
+      <div class="meth-card">
+        <span class="meta-line">Metric 02</span>
+        <h3>Query Coverage</h3>
+        <span class="metric-sublabel">Definition</span>
+        <p>Which types of queries your brand appears in — and which ones it misses.</p>
+        <span class="metric-sublabel">Why it matters</span>
+        <p>This shows whether your visibility is concentrated in narrow contexts or spread across the buying journey.</p>
+      </div>
+      <div class="meth-card">
+        <span class="meta-line">Metric 03</span>
+        <h3>Competitor Replacement</h3>
+        <span class="metric-sublabel">Definition</span>
+        <p>Which brands appear when yours does not.</p>
+        <span class="metric-sublabel">Why it matters</span>
+        <p>This shows who is capturing consideration in the AI-generated answers where your brand is absent.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT COUNTS AS INCLUSION -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">Measurement Rules</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s">Not every mention counts the same</h2>
+    <p class="body-text scroll-fade" style="transition-delay:0.15s">A brand can appear in an AI response in different ways. It may be the primary recommendation, one option in a shortlist, a comparison point, or a passing mention.</p>
+    <p class="body-text scroll-fade" style="transition-delay:0.18s">In the report, we separate meaningful inclusion from weak mentions where possible. This makes the analysis more useful than a simple mention count.</p>
+
+    <div class="inclusion-grid scroll-fade" style="transition-delay:0.22s">
+      <div class="inclusion-card">
+        <h4>Primary recommendation</h4>
+        <p>The brand is positioned as a leading or best-fit option.</p>
+      </div>
+      <div class="inclusion-card">
+        <h4>Shortlist inclusion</h4>
+        <p>The brand appears as one of several recommended options.</p>
+      </div>
+      <div class="inclusion-card">
+        <h4>Passing mention</h4>
+        <p>The brand is referenced, but not clearly recommended.</p>
+      </div>
+    </div>
+
+    <p class="body-text scroll-fade" style="transition-delay:0.28s; margin-top: 24px; font-size: 14px;">The goal is to understand whether your brand is actually being considered, not just whether its name appears.</p>
+  </div>
+</section>
+
+<!-- ANALYSIS -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">Analysis</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s">The value is in the pattern, not the prompt</h2>
+    <p class="body-text scroll-fade" style="transition-delay:0.15s">Running queries is only the collection step. The real value comes from comparing patterns across responses.</p>
+    <p class="body-text scroll-fade" style="transition-delay:0.18s">We look for differences between your brand and the brands that appear more often, including:</p>
+
+    <div class="signal-list scroll-fade" style="transition-delay:0.22s">
+      <div class="signal-item">
+        <span class="signal-dot"></span>
+        <span>Category clarity</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-dot"></span>
+        <span>Buyer-language fit</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-dot"></span>
+        <span>Third-party validation</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-dot"></span>
+        <span>Consistency of brand signals across the web</span>
+      </div>
+    </div>
+
+    <p class="body-text scroll-fade" style="transition-delay:0.28s; margin-top: 28px;">These patterns help explain why competitors may be selected more often — and where your brand has room to improve.</p>
+  </div>
+</section>
+
+<!-- LIMITATIONS -->
+<section class="content-section">
+  <div class="container">
+    <span class="label scroll-fade">Important Context</span>
+    <h2 class="scroll-fade" style="transition-delay:0.1s">What this does and does not prove</h2>
+    <div class="note-box scroll-fade" style="transition-delay:0.15s">
+      <p>AI responses can change. Results may vary by platform, timing, location, and query phrasing. The experiment is not designed to predict every possible AI answer or guarantee a specific recommendation outcome.</p>
+      <p>It is designed to create a controlled, repeatable snapshot of how your brand is being selected across the queries that matter most.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT FORM -->
+<section class="contact-section" id="contact">
+  <div class="container">
+    <span class="label">Get in Touch</span>
+    <h2>Find out where your brand stands in AI recommendations.</h2>
+    <p class="intro">If your team is investing in content, SEO, PR, or onsite experience, AI visibility is becoming part of the same discovery system. The first step is understanding where your brand is already being included — and where competitors are taking the slot.</p>
+    <form class="contact-form" action="https://formspree.io/f/xojpgapd" method="POST">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" placeholder="Your name" required />
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="you@company.com" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="brand">Tell us about your brand</label>
+        <textarea id="brand" name="brand" rows="3" placeholder="Your category, size, what you sell..."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="message" style="letter-spacing: 0.06em;">Describe your visibility problem / what brought you here</label>
+        <textarea id="message" name="message" rows="4" placeholder="What are you noticing in AI recommendations?" required></textarea>
+      </div>
+      <button type="submit" class="btn">Send Message →</button>
+    </form>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p class="foot-logo">Pick<em>Me</em>Labs</p>
+    <ul class="foot-links">
+      <li><a href="/#how">How AI Chooses Brands</a></li>
+      <li><a href="/#offer">Visibility Experiment</a></li>
+      <li><a href="/research.html">Research</a></li>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <p class="foot-copy">© 2026 PickMeLabs</p>
+  </div>
+</footer>
+
+<!-- PAGE TRANSITION -->
+<div class="page-transition" id="pageTransition"></div>
+
+<script>
+  // PAGE TRANSITION
+  const pageTransition = document.getElementById('pageTransition');
+  window.addEventListener('pageshow', () => pageTransition.classList.remove('active'));
+document.querySelectorAll('a').forEach(link => {
+  const href = link.getAttribute('href');
+  if (href && !href.startsWith('#') && !href.startsWith('mailto') && !href.startsWith('http') && href !== '/#lab') {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      pageTransition.classList.add('active');
+      if (href.startsWith('/#')) {
+        sessionStorage.setItem('scrollTo', href.substring(1));
+        setTimeout(() => { window.location.href = '/'; }, 80);
+      } else {
+        setTimeout(() => { window.location.href = href; }, 80);
+      }
+    });
+  }
+});
+
+  // HAMBURGER
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const mobileClose = document.getElementById('mobileClose');
+  function closeMenu() { hamburger.classList.remove('open'); mobileMenu.classList.remove('open'); document.body.style.overflow = ''; }
+  hamburger.addEventListener('click', () => { hamburger.classList.toggle('open'); mobileMenu.classList.toggle('open'); document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : ''; });
+  mobileClose.addEventListener('click', closeMenu);
+  document.querySelectorAll('.mobile-link').forEach(link => link.addEventListener('click', closeMenu));
+
+  // SCROLL FADE
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0 });
+  document.querySelectorAll('.scroll-fade').forEach(el => observer.observe(el));
+  
+  // HERO PARTICLES
+const canvas = document.getElementById('heroCanvas');
+
+if (canvas) {
+  const ctx = canvas.getContext('2d');
+
+  function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  const isMobile = window.innerWidth < 820;
+  const speedMultiplier = isMobile ? 0.3 : 1;
+
+  const particles = Array.from(
+    { length: isMobile ? 28 : 55 },
+    () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.35 * speedMultiplier,
+      vy: (Math.random() - 0.5) * 0.35 * speedMultiplier,
+      r: Math.random() * 1.2 + 0.4,
+      a: Math.random() * 0.45 + 0.1
+    })
+  );
+
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0,255,148,${p.a})`;
+      ctx.fill();
+    });
+
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+
+        if (d < 90) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle =
+            `rgba(0,255,148,${0.07 * (1 - d / 90)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+
+    requestAnimationFrame(animateParticles);
+  }
+
+  animateParticles();
+}
+</script>
+
+</body>
+</html>
