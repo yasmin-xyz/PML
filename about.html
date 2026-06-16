@@ -512,6 +512,20 @@
     });
   }, { threshold: 0, rootMargin: '0px 0px 0px 0px' });
   document.querySelectorAll('.scroll-fade').forEach(el => observer.observe(el));
+
+  // PostHog event tracking
+  var _phContactForm = document.querySelector('.contact-form');
+  if (_phContactForm) {
+    _phContactForm.addEventListener('submit', function() {
+      try {
+        var _email = (_phContactForm.querySelector('#email') || {}).value || '';
+        var _name = (_phContactForm.querySelector('#name') || {}).value || '';
+        var _brand = (_phContactForm.querySelector('#brand') || {}).value || '';
+        if (_email) { posthog.identify(_email, { name: _name, brand: _brand }); }
+        posthog.capture('contact_form_submitted', { form_location: 'about' });
+      } catch (err) { posthog.captureException(err); }
+    });
+  }
 </script>
 
 </body>

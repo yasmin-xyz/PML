@@ -1233,6 +1233,17 @@ const observer = new IntersectionObserver(entries => {
 }, { threshold: 0, rootMargin: '0px 0px -60px 0px' });
 
 document.querySelectorAll('.scroll-fade').forEach(el => observer.observe(el));
+
+// PostHog event tracking
+document.querySelectorAll('.concept-card').forEach(function(card) {
+  card.addEventListener('click', function() {
+    var t = card.querySelector('h3');
+    posthog.capture('concept_card_clicked', {
+      concept_title: t ? t.textContent.trim() : '',
+      href: card.getAttribute('href')
+    });
+  });
+});
 </script>
 
 </body>

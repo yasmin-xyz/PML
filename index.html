@@ -1377,6 +1377,61 @@
     });
   }, { threshold: 0 });
   document.querySelectorAll('.scroll-fade').forEach(el => observer.observe(el));
+
+  // PostHog event tracking
+  var _phContactForm = document.querySelector('.contact-section .contact-form');
+  if (_phContactForm) {
+    _phContactForm.addEventListener('submit', function() {
+      try {
+        var _email = (_phContactForm.querySelector('#email') || {}).value || '';
+        var _name = (_phContactForm.querySelector('#name') || {}).value || '';
+        var _brand = (_phContactForm.querySelector('#brand') || {}).value || '';
+        if (_email) { posthog.identify(_email, { name: _name, brand: _brand }); }
+        posthog.capture('contact_form_submitted', { form_location: 'homepage' });
+      } catch (err) { posthog.captureException(err); }
+    });
+  }
+
+  var _phHeroCta = document.querySelector('.hero .btn');
+  if (_phHeroCta) {
+    _phHeroCta.addEventListener('click', function() {
+      posthog.capture('hero_cta_clicked', { cta_text: _phHeroCta.textContent.trim() });
+    });
+  }
+
+  var _phOfferCta = document.querySelector('.offer-price-row .btn');
+  if (_phOfferCta) {
+    _phOfferCta.addEventListener('click', function() {
+      posthog.capture('offer_cta_clicked', { cta_text: _phOfferCta.textContent.trim() });
+    });
+  }
+
+  var _phNavCta = document.querySelector('.nav-cta');
+  if (_phNavCta) {
+    _phNavCta.addEventListener('click', function() {
+      posthog.capture('nav_cta_clicked');
+    });
+  }
+
+  document.querySelectorAll('.lab-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      var t = card.querySelector('h3');
+      posthog.capture('research_experiment_clicked', {
+        experiment_title: t ? t.textContent.trim() : '',
+        href: card.getAttribute('href')
+      });
+    });
+  });
+
+  document.querySelectorAll('.concept-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      var t = card.querySelector('h3');
+      posthog.capture('concept_card_clicked', {
+        concept_title: t ? t.textContent.trim() : '',
+        href: card.getAttribute('href')
+      });
+    });
+  });
 </script>
 
 </body>
